@@ -82,7 +82,7 @@ Note: dissect (see [documentation](https://www.elastic.co/guide/en/logstash/mast
 
 RSA uses specific field names in the configuration files that map to meta keys, as described [here](https://community.rsa.com/community/products/netwitness/blog/2017/11/13/rsa-meta-dictionary-tool).
 Elastic also defined a set of meta fields called ECS, see [documentation](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html).
-The `rsa2ecs.txt` file is used to map RSA meta fields to ECS naming (as well as types).
+The `rsa2ecs.txt` file is used to map RSA meta fields to ECS naming (as well as field types).
 
 ## TODO
 
