@@ -37,12 +37,12 @@ The script has several options:
 * `-h` will display help.
 * `-i` or `--input-file FILE` to enter the absolute patch to the RSA XML configuration file. Alternative is url.
 * `-u` or `--url URL` to enter the URL to the RSA XML configuration file. if no file or url is provided, this program will run on a [sample XML file](https://raw.githubusercontent.com/netwitness/nw-logparsers/master/devices/zscalernss/zscalernssmsg.xml) located in the RSA repo.
-* `-o` or `--output-file FILE` to enter the absolute path to the Logstash .conf file (default: `logstash-\[device\].conf`).
+* `-o` or `--output-file FILE` to enter the absolute path to the Logstash .conf file (default: `logstash-[device].conf`).
 * `-c` or `--check-config` runs on check of the generated configuration with `logstash -f` (default: false).
 * `-l` or `--logstash-path` to enter the absolute path to logstash bin executable (default is my local path!).
 * `-f` or `--full-grok-anchors` adds begining (^) and end ($) anchors in grok (default: false).
 * `-a` or `--add-stop-anchors` adds hard stop anchors in grok to ignore in-between chars, see explanation below. Should be set as a serie of plain characters, only escaping " and \\. Example: `\"()[]` (default: "").
-* `-s` or `--single-space-match` to only match 1 space in the log if there is 1 space in the RSA parser (default: false, ie match 1-N spaces aka `[\\s]+`).
+* `-s` or `--single-space-match` to only match 1 space in the log if there is 1 space in the RSA parser (default: false, ie match 1-N spaces aka `[\s]+`).
 * `-d` or `--debug` to enable debug mode, more verbose (default: false).
 
 ### Customize input & output
@@ -105,5 +105,6 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE.md](LIC
 
 ## Acknowledgments
 
+* First things first, I should thank RSA for sharing such content and helping the community with great resources!
 * Many thanks to my Elastic colleagues for their support, in particular @andsel, @jsvd and @yaauie from the Logstash team, as well as @webmat and @melvynator for the ECS mapping
 * Thanks also to my dear who let me work at nights and week-ends on this project :-*
