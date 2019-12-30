@@ -51,7 +51,25 @@ def convertDate(s):
         if a != -1:
             b = s.find("'",a+1)
             if b>a:
-                c = s[a+1:b]
+                sub = s[a+1:b]
+                # replace static chars
+                regex = re.compile("([a-zA-Z]+)")		# just matching a letter
+                for i in range(0,len(sub)):
+                    if regex.match(sub[i]):
+                        # if first character is a letter, escape it
+                        if i == 0:
+                            c = c + "'" + sub[i] + "'"
+                        else:
+                            # if char not preceded by a %, escape it
+                            if sub[i-1:i] != '%':
+                                c = c + "'" + sub[i] + "'"
+                            else:
+                                # otherwise add it
+                                c = c + sub[i]
+                    else:
+                        # otherwise add it
+                        c = c + sub[i]
+                # replace the specific chars by their logstash date filter equivalent
                 c = c.replace("%C", "M/d/yy H:m:s")
                 c = c.replace("%R", "MMMM")
                 c = c.replace("%B", "MMM")
@@ -109,10 +127,10 @@ def convertStrcat(s):
 
 # escaping " in grok content, and adding anchors if passed as param
 def escapeGrok(s):
-    if config.FULL_GROK_ANCHORS:
-        return "\"^" + str.strip(s.replace("\"","\\\"")) + "$\""
-    else:
+    if config.NO_GROK_ANCHORS:
         return "\"" + str.strip(s.replace("\"","\\\"")) + "\""
+    else:
+        return "\"^" + str.strip(s.replace("\"","\\\"")) + "$\""
 
 # escape special characters in grok :  \ . ^ $ * + - ? ( ) [ ] { } |
 def escapeRegex(s):
