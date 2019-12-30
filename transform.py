@@ -44,7 +44,7 @@ def transformContent(s, payloadField, finalDelimiter):
 					# if fieldname is the <!payload:payloadField> then insert the message "named group capture", cf grok guide
 					if fieldName == payloadField:
 						grok = grok + "(?<message>"
-					# find next delimiter and forge grok by capturing everything but the delimiter char, for example:  (?<fld>[^\s]+)\s
+					# find next delimiter and forge grok by capturing everything but the delimiter char, for example:  (?<fld>[^\s]*)\s
 					nextDelimiter = s[endField + 1: endField + 2]
 					if nextDelimiter == "":
 						# end of the string to parse, ie last field of the line
@@ -53,7 +53,7 @@ def transformContent(s, payloadField, finalDelimiter):
 							grok = grok + "(?<" + fieldName + ">.*)"
 						else:
 							# function called for alternatives {a|b}
-							grok = grok + "(?<" + fieldName + ">[^" + escapeRegex(finalDelimiter) + "]+)"
+							grok = grok + "(?<" + fieldName + ">[^" + escapeRegex(finalDelimiter) + "]*)"
 					elif nextDelimiter == "{" and s[endField + 2: endField + 3] != "{":
 						# field followed by alternatives, like <fld>{a|b} then next delimiter is the union of the first chars of each alternative
 						alternatives = str.split(s[endField + 2: s.find("}", endField + 2)], "|")
@@ -64,13 +64,13 @@ def transformContent(s, payloadField, finalDelimiter):
 								if config.DEBUG: print ("Parsing error because of <fld1>{a|<fld2>}: couldn't parse " + s)
 								return ""
 							firstChars = firstChars + alternative[:1]
-						grok = grok + "(?<" + fieldName + ">[^" + escapeRegex(firstChars) + "]+)"
+						grok = grok + "(?<" + fieldName + ">[^" + escapeRegex(firstChars) + "]*)"
 					elif nextDelimiter == "<" and s[endField + 2: endField + 3] != "<":
 						# <fld1><fld2> cannot work, to be dropped
 						if config.DEBUG: print("Parsing error because of two fields: couldn't parse " + s)
 						return ""
 					else:
-						grok = grok + "(?<" + fieldName + ">[^" + escapeRegex(nextDelimiter) + "]+)"
+						grok = grok + "(?<" + fieldName + ">[^" + escapeRegex(nextDelimiter) + "]*)"
 					# keep all fields for later mutate (ecs)
 					config.allFields.add (fieldName)
 					iChar = endField + 1
@@ -112,7 +112,8 @@ def transformContent(s, payloadField, finalDelimiter):
 				iChar = iChar + 1
 		elif s[iChar:iChar+1] != "" and s[iChar:iChar+1] in config.ADD_STOP_ANCHORS:
 			# one of the hard stop characters
-			grok = grok + "[^" + escapeRegex(s[iChar:iChar+1]) + "]*" + escapeRegex(s[iChar: iChar+1])
+			grok = grok + "(?<anchorfld" + str(config.anchorFldId) + ">[^" + escapeRegex(s[iChar:iChar+1]) + "]*)" + escapeRegex(s[iChar: iChar+1])
+			config.anchorFldId = config.anchorFldId + 1
 			iChar = iChar + 1
 		else:
 		# all other characters

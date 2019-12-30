@@ -16,7 +16,7 @@ import xml.etree.ElementTree as et
 
 def convertFile():
 
-	print("Starting file conversion...")
+	print("Starting file conversion for " + str(config.XML_FILE))
 	# get ecs mapping from file
 	with open(config.MAPPING_FILE,"r") as f:
 		for l in f:
@@ -143,7 +143,7 @@ def convertFile():
 					if dateFields != "":
 						lsconfFilter = lsconfFilter + t(4) + "\"fullDateTimeString\" => \"" + dateFieldMutation + "\"" + CR
 					lsconfFilter = lsconfFilter + t(3) + "}" + CR
-					lsconfFilter = lsconfFilter + t(3) + "add_tag => [ \"messagefound\" ]" + CR + t(3) + "# remove_field => [ \"message\" ]" + CR + t(2) + "}" + CR
+					lsconfFilter = lsconfFilter + t(3) + "add_tag => [ \"messagefound\" ]" + CR + t(2) + "}" + CR
 					# sometimes there is no date filter...
 					if dateFields != "":
 						lsconfFilter = lsconfFilter + t(2) + "if [fullDateTimeString] {" + CR + t(3) + "date { match => [\"fullDateTimeString\", \"" + dateMatching + "\" ] }" + CR + t(2) + "}" + CR
@@ -151,6 +151,7 @@ def convertFile():
 				# write the filter block
 				lsFile.write(lsconfFilter)
 
+		lsFile.write(CR)
 		# enrich events with categories
 		# lsFile.write(CR + "# Translate event category id in a name (using ecat.ini file from rsa, renamed in ecat.csv)" + CR)
 		# lsFile.write()"filter {" + CR + t(1) + "translate {" + CR)
@@ -162,9 +163,17 @@ def convertFile():
 		# lsFile.write(t(2) + "destination => ""event.category""" + CR)
 		# lsFile.write(t(1) + "}" + CR + "}" + CR)
 
-		# enrich url
-		with open(config.URL_FILTER_FILE,"r") as fi:
-			lsFile.write(fi.read())
+		# parse urls
+		if config.PARSE_URL:
+			lsFile.write(CR)
+			with open(config.URL_FILTER_FILE,"r") as fi:
+				lsFile.write(fi.read())
+
+		# parse user agents
+		if config.PARSE_UA:
+			lsFile.write(CR)
+			with open(config.UA_FILTER_FILE,"r") as fi:
+				lsFile.write(fi.read())
 
 		# add the changes of types (to prepare for ecs mapping and get all other fields as string)
 		lsFile.write(CR + "# Convert types of fields" + CR)
@@ -209,6 +218,13 @@ def convertFile():
 			lsFile.write("filter {" + CR + t(1) + "mutate {" + CR)
 			lsFile.write(t(2) + "remove_field => [ " + removedFields + " ]" + CR + t(1) + "}" + CR + "}" + CR)
 
+		# remove the parsed fields
+		if config.REMOVE_PARSED_FIELDS:
+			lsFile.write(CR + "# Remove parsed fields" + CR)
+			lsFile.write("filter {" + CR + t(1) + "if \"headerfound\" in [tags] and \"messagefound\" in [tags] {" + CR)
+			lsFile.write(t(2) + "mutate { remove_field => [ \"[event][original]\", \"message\" ] }" + CR)
+			lsFile.write(t(1) + "}" + CR + "}" + CR)
+
 		# add output lines of logstash conf
 		with open(config.OUTPUT_FILE,"r") as fi:
 			lsFile.write(fi.read())
@@ -221,4 +237,13 @@ def convertFile():
 		cmd =  "\"" + str(config.LS_EXEC) + "\" -t -f " + str(config.LS_CONF_FILE) + " > " + str(config.LS_STDOUT_FILE) + " 2>&1"
 		if config.DEBUG: print("Running Logstash config check: " + cmd)
 		os.system(cmd)
-		print("Logstash config test finished, see test results in output-logstash-configtest.txt")
+		# read output to check if configuration is ok
+		configOk = False
+		with open(config.LS_STDOUT_FILE,"r") as fi:
+			for l in fi:
+				if "Configuration OK" in l:
+					configOk = True
+		if configOk:
+			print("Logstash config test successful, see test results in " + str(config.LS_STDOUT_FILE))
+		else:
+			print("Logstash config test KO, see more details in " + str(config.LS_STDOUT_FILE))
