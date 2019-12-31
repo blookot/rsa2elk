@@ -22,17 +22,25 @@ def transformContent(s, payloadField, finalDelimiter):
 				grok = grok + "<"
 				iChar = iChar + 2
 			elif s[iChar+1:iChar+2] == "@":
-				# old <@perimeter:sgt> notation meaning a new field "perimeter" should be set to "sgt"
+				# old <@fld:stuff> notation meaning a new field "perimeter" should be set to "sgt"
+				# can also be <@fld:*STRCAT(a,b)> for instance
 				endNewField = s.find(">",iChar)
 				if endNewField > 0:
-					# extract the field name
-					colonLoc = s.find(":",iChar)
-					if colonLoc > iChar and colonLoc < endNewField:
-						config.addedFields = config.addedFields + t(4) + "\"" + s[iChar + 2: colonLoc] + "\" => \"" + s[colonLoc + 1: endNewField] + "\"" + CR
+					sub = s[iChar+1:endNewField]
+					kv = sub.split(":")
+					k, v = "".join(kv[:1]), ":".join(kv[1:])
+					if v[:7] == "*STRCAT":
+						catenateFields = convertStrcat(v)
+						config.addedFields = config.addedFields + t(4) + "\"" + k[1:] + "\" => \"" + catenateFields + "\"" + CR
 						# keep all fields for later mutate (ecs)
-						config.allFields.add(s[iChar + 2: colonLoc])
+						config.allFields.add(k[1:])
+					elif v[:1] != "*":
+						# static field
+						config.addedFields = config.addedFields + t(4) + "\"" + k[1:] + "\" => \"" + v + "\"" + CR
+						# keep all fields for later mutate (ecs)
+						config.allFields.add(k[1:])
 					else:
-						if config.DEBUG: print("Error in new field <@fld:stuff> notation (no colon): " + s)
+						if config.DEBUG: print("Error in new field <@fld:stuff> notation (unsupported value): " + sub)
 				else:
 					if config.DEBUG: print("Error in new field <@fld:stuff> notation (no closing >): " + s)
 				iChar = endNewField + 1

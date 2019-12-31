@@ -121,10 +121,10 @@ def convertFile():
 								dateMatching = convertDate(v)
 							elif v[:7] == "*STRCAT":
 								catenateFields = convertStrcat(v)
-								config.addedFields = config.addedFields + t(4) + "\"" + k.replace("@", "") + "\" => \"" + catenateFields + "\"" + CR
+								config.addedFields = config.addedFields + t(4) + "\"" + k[1:] + "\" => \"" + catenateFields + "\"" + CR
 							elif v[:1] != "*":
 								# static field
-								config.addedFields = config.addedFields + t(4) + "\"" + k.replace("@", "") + "\" => \"" + v + "\"" + CR
+								config.addedFields = config.addedFields + t(4) + "\"" + k[1:] + "\" => \"" + v + "\"" + CR
 						if config.DEBUG: print(nodeName + " " + messageId + " || " + nodeKey + " || " + nodeVal)
 					if nodeKey == "content":
 						rsaLine = nodeVal
