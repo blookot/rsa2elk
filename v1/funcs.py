@@ -127,20 +127,13 @@ def convertStrcat(s):
 
 # escaping " in grok content, and adding anchors if passed as param
 def escapeGrok(s):
-    if s == "": return s
     if config.NO_GROK_ANCHORS:
         return "\"" + str.strip(s.replace("\"","\\\"")) + "\""
     else:
         return "\"^" + str.strip(s.replace("\"","\\\"")) + "$\""
 
-# escaping " in dissect content
-def escapeDissect(s):
-    if s == "": return s
-    return "\"" + str.strip(s.replace("\"","\\\"")) + "\""
-
 # escape special characters in grok :  \ . ^ $ * + - ? ( ) [ ] { } |
 def escapeRegex(s):
-    # s = str(s,'utf-8')
     s = s.replace("\\", "\\\\"); s = s.replace(".", "\\."); s = s.replace("^", "\\^"); s = s.replace("$", "\\$")
     s = s.replace("*", "\\*"); s = s.replace("+", "\\+"); s = s.replace("-", "\\-"); s = s.replace("?", "\\?")
     s = s.replace("(", "\\("); s = s.replace(")", "\\)"); s = s.replace("[", "\\["); s = s.replace("]", "\\]")

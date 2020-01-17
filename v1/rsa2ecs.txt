@@ -163,6 +163,7 @@ error||misc.error||string
 detail||misc.detail||string
 event_description||misc.event_description||string
 event_computer||misc.event_computer||string
+id||misc.id||string
 event_log||misc.event_log||string
 sessionid||misc.sessionid||string
 sessionid1||misc.sessionid1||string
@@ -184,6 +185,8 @@ language||misc.language||string
 lifetime||misc.lifetime||integer
 link||misc.link||string
 sigid1||misc.sigid1||integer
+message||misc.message||string
+message_body||misc.message_body||string
 terminal||misc.terminal||string
 node||misc.node||string
 obj_name||misc.obj_name||string
@@ -249,7 +252,7 @@ trigger_desc||misc.trigger_desc||string
 trigger_val||misc.trigger_val||string
 tos||misc.tos||integer
 agent.id||misc.agent.id||string
-user_agent||user_agent.original||string
+user_agent||misc.user_agent||string
 version||misc.version||string
 vsys||misc.vsys||string
 virusname||misc.virusname||string

@@ -33,35 +33,24 @@ python rsa2elk.py -h
 
 The script has several options:
 * `-h` will display help.
-* `-i` or `--input-file FILE` to enter the absolute patch to the RSA XML configuration file. Alternative is url. See the note below for custom XML file.
+* `-i` or `--input-file FILE` to enter the absolute patch to the RSA XML configuration file. Alternative is url.
 * `-u` or `--url URL` to enter the URL to the RSA XML configuration file. if no file or url is provided, this program will run on a [sample XML file](https://raw.githubusercontent.com/netwitness/nw-logparsers/master/devices/zscalernss/zscalernssmsg.xml) located in the RSA repo.
 * `-o` or `--output-file FILE` to enter the absolute path to the Logstash .conf file (default: `logstash-[device].conf`).
 * `-c` or `--check-config` runs on check of the generated configuration with `logstash -f` (default: false).
 * `-l` or `--logstash-path` to enter the absolute path to logstash bin executable (default is my local path!).
 * `-n` or `--no-grok-anchors` removes the begining (^) and end ($) anchors in grok (default: false, ie default is to have them).
 * `-a` or `--add-stop-anchors` adds hard stop anchors in grok to ignore in-between chars, see explanation below. Should be set as a serie of plain characters, only escaping " and \\. Example: `\"()[]` (default: "").
-* `-m` or `--single-space-match` to only match 1 space in the log if there is 1 space in the RSA parser (default: false, ie match 1-N spaces aka `[\s]+`).
+* `-s` or `--single-space-match` to only match 1 space in the log if there is 1 space in the RSA parser (default: false, ie match 1-N spaces aka `[\s]+`).
 * `-p` or `--parse-url` adds a pre-defined filter block (see [filter-url.conf](filter-url.conf)) to parse URLs into domain, query, etc (default: false).
 * `-q` or `--parse-ua` adds a pre-defined filter block (see [filter-ua.conf](filter-ua.conf)) to parse User Agents (default: false).
-* `-e` or `--enrich-geo` adds a filter block (see [filter-geoip.conf](filter-geoip.conf)) to enrich public IPs with geoip information (default: false).
-* `-f` or `--enrich-asn` adds a filter block (see [filter-asn.conf](filter-asn.conf)) to enrich public IPs with ASN information (default: false).
 * `-r` or `--remove-parsed-fields` removes the event.original and message fields if correctly parsed (default: false).
-* `-s` or `--rename` renames default rsa fields to ECS fields (default: false).
-* `-t` or `--trim-fields` trims (strips left and right spaces) from all string fields (default: false).
 * `-d` or `--debug` to enable debug mode, more verbose (default: false).
-
-### Input
-
-The XML configuration file can be specified using the `-i` option for a local file or `-u` option for a URL.
-When specifying a local file, for instance `networkdevice.xml`, the script will also look for a related "custom" XML file named `networkdevice-custom.xml`. If it exists, the script will take each entry (header & message) of the custom XML and insert them in the "main" XML tree. See [RSA doc](https://community.rsa.com/docs/DOC-83425) for more documentation.
 
 ### Customize input & output
 
 The tool mostly generates the `filter` part of the Logstash configuration. The `input` and `output` sections are copied from the [input.conf](input.conf) and [output.conf](output.conf) files that you can customize.
 
 Note: the [filter-url.conf](filter-url.conf) file adds a section at the end of the Logstash configuration to deal with urls. The [filter-ua.conf](filter-ua.conf) parses user agents. Both files can be customized, partially commented... In particular, the user-agent parsing can be resource intensive.
-
-Note: the [filter-geoip.conf](filter-geoip.conf) and [filter-asn.conf](filter-asn.conf) enrichments are also lookups on large tables which can be resource intensive. 
 
 ### Output
 
@@ -82,20 +71,13 @@ The syntax of the XML configuration file is specific to RSA and falls into 2 par
 
 In both, the `content` attribute describes how the log is parsed. The syntax supports alternatives `{a|b}`, field extraction `<fld1>` and static strings.
 
-The `transform.py` module does the core of the conversion by reading this content line character after character and computing the corresponding grok or dissect pattern.
-Dissect is prefered by default, as it performs faster and easily matches the RSA syntax. However, Dissect does not support alternatives `{a|b}` and (specifically for headers) it does not support sub group capturing with the `payload` field. So, for both cases, we fallback to grok.
-
-#### Dissect
-
-When dissect is possible, transformation is easy: "just" replace <fld> with %{fld}! As simple as that.
-And performance should improve (see a [feature & perf comparison](https://www.elastic.co/blog/logstash-dude-wheres-my-chainsaw-i-need-to-dissect-my-logs)).
-
-#### Grok
-
+The `transform.py` module does the core of the conversion by reading this content line character after character and computing the corresponding grok pattern.
 The whole idea of the grok pattern is to capture fields with any character but the one after the field. For example, `<fld1> <fld2>` in RSA will result in `?<fld1>[^\s]*)[\s]+(?<fld2>.*)` in grok. Note that the `[\s]+` in the middle is quite permissive because many products use several spaces to tabularize their logs. The `-s` flag can be used to change this behavior to strictly match the log according to the exact number of spaces in the RSA configuration. This flag will replace the `[\s]+` by a simple `\s`.
 
 RSA can also handle missing fields when reading specific characters. For example, this RSA parser `<fld1> "<fld99>"` will match both `aaa "zzz"` (where fld1='aaa') and `aaa bbb "zzz"` (where fld1='aaa bbb').
 The `-a` flag will let the user input specific characters that will serve as anchors, so that when they are found, the grok will jump over the unexpected fields. Using the above example, the grok will look like `(?<fld1>[^\s]*)[\s]+(?<anchorfld>[^\"]*)\"(?<fld99>[^\"]+)\"`. Please note that we are adding a `anchorfld` field to capture the possible characters before the anchor, so for `aaa bbb "zzz"`, the `anchorfld` field will only have 'bbb'). Which is what you would expect I think ;-)
+
+Note: dissect (see [documentation](https://www.elastic.co/guide/en/logstash/master/plugins-filters-dissect.html)) is faster and easier to read but doesn't support alternatives. Could be an improvement though.
 
 ### RSA meta fields to Elastic Common Schema (ECS)
 
@@ -103,27 +85,15 @@ RSA uses specific field names in the configuration files that map to meta keys, 
 Elastic also defined a set of meta fields called ECS, see [documentation](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html).
 The `rsa2ecs.txt` file is used to map RSA meta fields to ECS naming (as well as field types).
 
-## Changelog (since v1)
-
-The main changes since [v1](v1/) are listed here:
-* dissect is now used (instead of grok) when the RSA header parser doesn't have a specific field as payload, and when the message parser has no alternatives. Should result in performance increase.
-* the script now also reads the `-custom` XML file 
-* support ip geoloc & asn enrichment as new options
-* mutate strip (whitespace removal) all text fields as a new option
-* read XML headers to grab the configuration device name & group
-* support PARMVAL & HDR functions to set message id value
-* support functions in header parsing (content) string as well
-* better handling of encoding (XML being in ISO-8859-1 and logstash output file in UTF-8)
-* renaming rsa fields to ECS is now an option (is ECS is not mandatory, don't rename)
-* add grok/dissect id to help monitoring, see [pipeline viewer doc](https://www.elastic.co/guide/en/logstash/current/logstash-pipeline-viewer.html) and [logstash diag](https://github.com/elastic/support-diagnostics#logstash-diagnostics)
-
 ## TODO
 
 There are still a few ideas to improve this rsa2elk:
+* for content lines that don't use alternatives, generate a dissect instead of a grok
 * input a custom `ecat.ini` (RSA customers)
-* input a custom `table-map.xml` and `table-map-custom.xml` (RSA customers) for custom fields
+* input a custom `table-map.xml` and `table-map-custom.xml` (RSA customers)
 * support additional custom enrichment with external files (RSA customers)
 * generate the Elasticsearch index mapping (template) based on the ecs map
+* use the `DEVICEMESSAGES` in the XML file to set the device name and group
 * port this converter to Elasticsearch ingest pipeline (see [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/pipeline.html)), specially since Elasticsearch 7.5 added an enrichment processor
 
 ## Authors
