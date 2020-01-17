@@ -8,29 +8,10 @@
 
 from funcs import *
 import config
-import re
-
-
-# transform a rsa parsing (with no alternative) into a dissect
-def transformDissect(s):
-	config.withDissect = True
-	# RSA escapes < with << and { with {{ (there can't be alternatives in dissect)
-	dissect = s.replace("<<",chr(220)).replace("\"","\\\"").replace("{{","{")
-	# find all fields
-	pattern = re.compile("<([^<>]*)>")
-	for fld in pattern.finditer(s):
-		newfld = "%{" + fld.group(1) + "}"
-		dissect = dissect.replace(fld.group(0),newfld)
-		# keep all fields for later mutate (ecs)
-		config.allFields.add (fld.group(1))
-	# put the static < back
-	dissect = dissect.replace(chr(220),"<")
-	return dissect
 
 
 # get parsing string and compute the corresponding grok
-def transformGrok(s, payloadField, finalDelimiter):
-	config.withDissect = False
+def transformContent(s, payloadField, finalDelimiter):
 	grok = ""
 	iChar = 0
 	# go through the rsa parsing string char by char
@@ -40,6 +21,29 @@ def transformGrok(s, payloadField, finalDelimiter):
 			if s[iChar+1:iChar+2] == "<":
 				grok = grok + "<"
 				iChar = iChar + 2
+			elif s[iChar+1:iChar+2] == "@":
+				# old <@fld:stuff> notation meaning a new field "perimeter" should be set to "sgt"
+				# can also be <@fld:*STRCAT(a,b)> for instance
+				endNewField = s.find(">",iChar)
+				if endNewField > 0:
+					sub = s[iChar+1:endNewField]
+					kv = sub.split(":")
+					k, v = "".join(kv[:1]), ":".join(kv[1:])
+					if v[:7] == "*STRCAT":
+						catenateFields = convertStrcat(v)
+						config.addedFields = config.addedFields + t(4) + "\"" + k[1:] + "\" => \"" + catenateFields + "\"" + CR
+						# keep all fields for later mutate (ecs)
+						config.allFields.add(k[1:])
+					elif v[:1] != "*":
+						# static field
+						config.addedFields = config.addedFields + t(4) + "\"" + k[1:] + "\" => \"" + v + "\"" + CR
+						# keep all fields for later mutate (ecs)
+						config.allFields.add(k[1:])
+					else:
+						if config.DEBUG: print("Error in new field <@fld:stuff> notation (unsupported value): " + sub)
+				else:
+					if config.DEBUG: print("Error in new field <@fld:stuff> notation (no closing >): " + s)
+				iChar = endNewField + 1
 			else:
 				# begining of an RSA field
 				endField = s.find(">",iChar)
@@ -78,9 +82,6 @@ def transformGrok(s, payloadField, finalDelimiter):
 					# keep all fields for later mutate (ecs)
 					config.allFields.add (fieldName)
 					iChar = endField + 1
-				else:
-					if config.DEBUG: print("Parsing error: couldn't find the end of the new field " + s)
-					return ""
 		elif s[iChar:iChar+1] == "{":
 			# test if double {{ ({ escaped)
 			if s[iChar+1:iChar+2] == "{":
@@ -105,9 +106,23 @@ def transformGrok(s, payloadField, finalDelimiter):
 					grok = grok + "("
 					alternatives = str.split(s[iChar + 1: endAlt], "|")
 					for alternative in alternatives:
-						grok = grok + transformGrok(alternative, "", nextDelimiter) + "|"
+						grok = grok + transformContent(alternative, "", nextDelimiter) + "|"
 					grok = grok[:-1] + ")"
 					iChar = endAlt + 1
+		elif s[iChar:iChar+1] == " ":
+			# by default, all spaces should be grouped into a [\s]+, unless SINGLE_SPACE option specified
+			if config.SINGLE_SPACE:
+				grok = grok + "\s"
+			else:
+				grok = grok + "[\s]+"
+			iChar = iChar + 1
+			while iChar <= len(s) and s[iChar: iChar+1] == " ":
+				iChar = iChar + 1
+		elif s[iChar:iChar+1] != "" and s[iChar:iChar+1] in config.ADD_STOP_ANCHORS:
+			# one of the hard stop characters
+			grok = grok + "(?<anchorfld" + str(config.anchorFldId) + ">[^" + escapeRegex(s[iChar:iChar+1]) + "]*)" + escapeRegex(s[iChar: iChar+1])
+			config.anchorFldId = config.anchorFldId + 1
+			iChar = iChar + 1
 		else:
 		# all other characters
 			grok = grok + escapeRegex(s[iChar: iChar+1])
@@ -120,40 +135,12 @@ def transformGrok(s, payloadField, finalDelimiter):
 	return grok
 
 
-# read the full rsa line and extract funcs and use dissect if there is no alternatives, or grok
-def transformFullRsaLine(s, msgField, payloadField):
-	msgMatch = ""
-	# find potential funcs and extract them
-	s = transformFunctions(s)
-	# if payload field is not empty, use grok anyway
-	if payloadField != "":
-		msgMatch = escapeGrok(transformGrok(s,payloadField,""))
-	else:
-		# look for alternatives
-		withAlternatives = False
-		pattern = re.compile("{")
-		for alternative in re.finditer(pattern, s):
-			# check if it's an escaped {
-			if s[alternative.start():alternative.start()+2] != "{{":
-				withAlternatives = True
-		# if there are alternatives, use grok, otherwise we can use dissect
-		if withAlternatives:
-			msgMatch = escapeGrok(transformGrok(s,payloadField,""))
-		else:
-			msgMatch = escapeDissect(transformDissect(s))
-	# get the message and return the full line
-	if msgMatch == "":
-		return ""
-	else:
-		return "\"" + msgField + "\" => " + msgMatch
-
-
-# get parsing string for a header and compute the corresponding dissect
+# get parsing string for a header and compute the corresponding grok
 def transformHeaderContent(s):
 	# first, deal with <!payload> field (only in headers)
 	payloadField = ""
 	iPayload = s.find("<!payload")
-	if iPayload >= 0:
+	if iPayload > 0:
 		endPayload = s.find(">",iPayload)
 		if endPayload > 0:
 			# check for a field in the payload tag
@@ -168,55 +155,20 @@ def transformHeaderContent(s):
 			if config.DEBUG: print("Error in payload field: " + s)
 	else:
 		if config.DEBUG: print("Error in payload field, missing payload: " + s)
-	# return the match
-	return transformFullRsaLine(s, "[event][original]", payloadField)
+	# return the grok match
+	grok = transformContent(s, payloadField, "")
+	if grok == "":
+		return ""
+	else:
+		return " \"[event][original]\" => " + escapeGrok(grok)
 
 
-# get parsing string for a message and compute the corresponding dissect
+# get parsing string for a message and compute the corresponding grok
 def transformMessageContent(s):
-	# return the dissect match
-	return transformFullRsaLine(s, "message", "")
+	# return the grok match
+	grok = transformContent(s, "", "")
+	if grok == "":
+		return ""
+	else:
+		return " \"message\" => " + escapeGrok(grok)
 
-
-# transform functions
-def transformFunctions(s):
-	# get each part of the functions string (excluding < and >)
-	pattern = re.compile("<@([a-z_]+):([^>]+)>")
-	for rsaFunc in pattern.finditer(s):
-		k, v = rsaFunc.group(1), rsaFunc.group(2)
-		if v[:9] == "*EVNTTIME":
-			# compute the timestamp field
-			config.dateFields = extractDateFields(v)
-			config.dateFieldMutation = "%{" + config.dateFields.replace(",", "} %{") + "}"
-			# extract date parsing and convert it to logstash format
-			config.dateMatching = convertDate(v)
-		elif v[:7] == "*STRCAT":
-			# transform <@fld:*STRCAT(a,b)> for instance
-			catenateFields = convertStrcat(v)
-			if k == "msg_id":
-				config.messageId1 = catenateFields
-			else:
-				config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + catenateFields + "\"" + CR
-		elif v[:8] == "*PARMVAL":
-			# transform <@fld1:*PARMVAL(fld2)> for instance (that copies fld2 in fld1)
-			if k != "msg":
-				if k == "msg_id":
-					config.messageId1 = "%{" + v[9:-1] + "}"
-				else:
-					config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[9:-1] + "}\"" + CR
-		elif v[:8] == "*HDR":
-			# transform <@fld:*HDR(hfld)> for instance (that copies a header field hfld in fld)
-			if k != "msg":
-				if k == "msg_id":
-					config.messageId1 = "%{" + v[5:-1] + "}"
-				else:
-					config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[5:-1] + "}\"" + CR
-		elif v[:1] != "*":
-			# static field
-			config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + v + "\"" + CR
-		# keep all fields for later mutate (ecs)
-		config.allFields.add(k)
-		# anyway (recognized func or not), delete it
-		s = s.replace(rsaFunc.group(0),"")
-	# when further parsing is planned, return the string with no funcs
-	return s
