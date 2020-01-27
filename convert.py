@@ -21,7 +21,7 @@ def convertFile():
 	# First checking that mandatory files exist
 	if path.exists(config.MAPPING_FILE) and path.exists(config.XML_FILE) and path.exists(config.ECAT_FILE) and path.exists(config.INPUT_FILE) and path.exists(config.OUTPUT_FILE):
 
-		print("Starting file conversion for " + str(config.XML_FILE))
+		print("*** Starting file conversion for " + str(config.XML_FILE))
 		# get ecs mapping from file
 		with open(config.MAPPING_FILE,"r") as f:
 			for l in f:
@@ -104,7 +104,7 @@ def convertFile():
 				for child in root:
 					nodeName = child.tag
 					rsaLine = ""; msgMatch = ""; config.dateFields = ""; config.dateFieldMutation = ""; config.dateMatching = ""
-					config.messageId1 = ""; messageId2 = ""; messageParserId = ""; headerId = ""; eventCategory = ""
+					config.messageId = ""; messageId1 = ""; messageId2 = ""; messageParserId = ""; headerId = ""; eventCategory = ""
 					config.addedFields = ""
 
 					# dealing with HEADER nodes
@@ -162,8 +162,9 @@ def convertFile():
 							nodeVal = child.attrib[nodeKey]
 							# get the id to add it as a new field
 							if nodeKey == "id1":
-								# by default, this is messageid1, unless there is a msg_id in funcs
-								config.messageId1 = nodeVal
+								# by default, the message id is id1, unless there is a msg_id in funcs
+								messageId1 = nodeVal
+								config.messageId = nodeVal
 							if nodeKey == "id2":
 								# matching with header on id2
 								messageId2 = nodeVal
@@ -175,7 +176,7 @@ def convertFile():
 							# get transformation functions and compute the corresponding mutates
 							if nodeKey == "functions":
 								transformFunctions(nodeVal)
-								if config.DEBUG: print(nodeName + " " + config.messageId1 + " || " + nodeKey + " || " + nodeVal)
+								if config.DEBUG: print(nodeName + " " + messageId1 + " || " + nodeKey + " || " + nodeVal)
 							if nodeKey == "content":
 								rsaLine = nodeVal
 								msgMatch = transformMessageContent(nodeVal)
@@ -187,20 +188,20 @@ def convertFile():
 						# check the msgMatch has been correctly generated
 						if msgMatch == "":
 							# empty msgMatch, ie content transformation didn#t work, just say it
-							lsconfFilter = CR + "# MESSAGE " + config.messageId1 + CR + "# line in RSA: " + rsaLine + CR + "# Parsing error!"
+							lsconfFilter = CR + "# MESSAGE " + messageId1 + CR + "# line in RSA: " + rsaLine + CR + "# Parsing error!"
 						else:
 							# compose the filter section
-							lsconfFilter = CR + "# MESSAGE " + config.messageId1 + CR + "# line in RSA: " + rsaLine + CR
+							lsconfFilter = CR + "# MESSAGE " + messageId1 + CR + "# line in RSA: " + rsaLine + CR
 							lsconfFilter = lsconfFilter + "filter {" + CR + t(1) + "if ![logstash][messagefound] and [rsa][message][id2] == \"" + messageId2 + "\" {" + CR
 							if config.withDissect:
 								lsconfFilter = lsconfFilter + t(2) + "dissect {" + CR + t(3) + "mapping => { " + msgMatch + " }" + CR
 							else:
 								lsconfFilter = lsconfFilter + t(2) + "grok {" + CR + t(3) + "match => { " + msgMatch + " }" + CR
 							# add a filter id for monitoring purpose
-							lsconfFilter = lsconfFilter + t(3) + "id => \"message-" + config.messageId1 + "\"" + CR
+							lsconfFilter = lsconfFilter + t(3) + "id => \"message-" + messageId1 + "\"" + CR
 							# add new fields
-							config.addedFields = config.addedFields + t(4) + "\"[event][id]\" => \"" + config.messageId1 + "\"" + CR
-							config.addedFields = config.addedFields + t(4) + "\"[rsa][message][id1]\" => \"" + config.messageId1 + "\"" + CR
+							config.addedFields = config.addedFields + t(4) + "\"[event][id]\" => \"" + config.messageId + "\"" + CR
+							config.addedFields = config.addedFields + t(4) + "\"[rsa][message][id1]\" => \"" + messageId1 + "\"" + CR
 							lsconfFilter = lsconfFilter + t(3) + "add_field => {" + CR + config.addedFields
 							# sometimes there is no date filter...
 							if config.dateFields != "":
@@ -330,20 +331,33 @@ def convertFile():
 
 		# test the configuration file
 		if config.CHECK_CONF:
-			print("Starting Logstash to check the configuration...")
+			print("Running Logstash to check the configuration...")
 			cmd =  "\"" + str(config.LS_EXEC) + "\" -t -f " + str(config.LS_CONF_FILE) + " > " + str(config.LS_STDOUT_FILE) + " 2>&1"
 			if config.DEBUG: print("Running Logstash config check: " + cmd)
 			system(cmd)
 			# read output to check if configuration is ok
-			configOk = False
+			configOk = False; jvmInitError = False; jvmHeapSpace = False
 			with open(config.LS_STDOUT_FILE,"r") as fi:
 				for l in fi:
 					if "Configuration OK" in l:
 						configOk = True
+					if "Error occurred during initialization of VM" in l:
+						jvmInitError = True
+					if "Error: Could not create the Java Virtual Machine" in l:
+						jvmInitError = True
+					if "java.lang.OutOfMemoryError: Java heap space" in l:
+						jvmHeapSpace = True
 			if configOk:
 				print("Logstash config test successful, see test results in " + str(config.LS_STDOUT_FILE))
+			elif jvmInitError:
+				print("Error in Logstash JVM init, see more details in " + str(config.LS_STDOUT_FILE))
+				sys.exit(-2)
+			elif jvmHeapSpace:
+				print("Error: Java heap space (out of memory), see more details in " + str(config.LS_STDOUT_FILE))
+				sys.exit(-2)
 			else:
 				print("Logstash config test KO, see more details in " + str(config.LS_STDOUT_FILE))
+				sys.exit(-3)
 
 	# if files don't exist
 	else:
