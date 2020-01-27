@@ -182,40 +182,49 @@ def transformMessageContent(s):
 def transformFunctions(s):
 	# get each part of the functions string (excluding < and >)
 	pattern = re.compile("<@([a-z_]+):([^>]+)>")
+	# keep the list of fields, because sometimes they are defined twice! like in devices/astarosg/astarosgmsg.xml
+	newFuncFields = set()
 	for rsaFunc in pattern.finditer(s):
 		k, v = rsaFunc.group(1), rsaFunc.group(2)
-		if v[:9] == "*EVNTTIME":
-			# compute the timestamp field
-			config.dateFields = extractDateFields(v)
-			config.dateFieldMutation = "%{" + config.dateFields.replace(",", "} %{") + "}"
-			# extract date parsing and convert it to logstash format
-			config.dateMatching = convertDate(v)
-		elif v[:7] == "*STRCAT":
-			# transform <@fld:*STRCAT(a,b)> for instance
-			catenateFields = convertStrcat(v)
-			if k == "msg_id":
-				config.messageId1 = catenateFields
-			else:
-				config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + catenateFields + "\"" + CR
-		elif v[:8] == "*PARMVAL":
-			# transform <@fld1:*PARMVAL(fld2)> for instance (that copies fld2 in fld1)
-			if k != "msg":
+		# check if this field hasn't been read yet
+		if k in newFuncFields:
+			# again the same field!
+			if config.DEBUG: print ("The field " + k + "is defined twice in " + s)
+		else:
+			if v[:9] == "*EVNTTIME":
+				# compute the timestamp field
+				config.dateFields = extractDateFields(v)
+				config.dateFieldMutation = "%{" + config.dateFields.replace(",", "} %{") + "}"
+				# extract date parsing and convert it to logstash format
+				config.dateMatching = convertDate(v)
+			elif v[:7] == "*STRCAT":
+				# transform <@fld:*STRCAT(a,b)> for instance
+				catenateFields = convertStrcat(v)
 				if k == "msg_id":
-					config.messageId1 = "%{" + v[9:-1] + "}"
+					config.messageId = catenateFields
 				else:
-					config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[9:-1] + "}\"" + CR
-		elif v[:8] == "*HDR":
-			# transform <@fld:*HDR(hfld)> for instance (that copies a header field hfld in fld)
-			if k != "msg":
-				if k == "msg_id":
-					config.messageId1 = "%{" + v[5:-1] + "}"
-				else:
-					config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[5:-1] + "}\"" + CR
-		elif v[:1] != "*":
-			# static field
-			config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + v + "\"" + CR
-		# keep all fields for later mutate (ecs)
-		config.allFields.add(k)
+					config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + catenateFields + "\"" + CR
+			elif v[:8] == "*PARMVAL":
+				# transform <@fld1:*PARMVAL(fld2)> for instance (that copies fld2 in fld1)
+				if k != "msg":
+					if k == "msg_id":
+						config.messageId = "%{" + v[9:-1] + "}"
+					else:
+						config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[9:-1] + "}\"" + CR
+			elif v[:4] == "*HDR":
+				# transform <@fld:*HDR(hfld)> for instance (that copies a header field hfld in fld)
+				if k != "msg":
+					if k == "msg_id":
+						config.messageId = "%{" + v[5:-1] + "}"
+					else:
+						config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[5:-1] + "}\"" + CR
+			elif v[:1] != "*":
+				# static field
+				config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + v + "\"" + CR
+			# record the field anyway
+			newFuncFields.add(k)
+			# keep all fields for later mutate (ecs)
+			config.allFields.add(k)
 		# anyway (recognized func or not), delete it
 		s = s.replace(rsaFunc.group(0),"")
 	# when further parsing is planned, return the string with no funcs
