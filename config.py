@@ -54,8 +54,8 @@ ecat = {}
 allFields = set() 
 anchorFldId = 1
 withDissect = False
+parsingError = ""
 messageId = ""
-dateFields = ""
 dateFieldMutation = ""
 dateMatching = ""
 
@@ -79,11 +79,6 @@ def init():
 	parser.add_argument('-i', '--input-file', action='store', default='', help='Absolute path to RSA XML file (automatically uses the related custom XML file as well)')
 	parser.add_argument('-u', '--url', action='store', default='', help='url of RSA XML file')
 	parser.add_argument('-o', '--output-file', action='store', default='', help='Absolute path to Logstash .conf file (default: logstash-[device].conf)')
-	parser.add_argument('-c', '--check-config', action='store_true', default=False, help='Check the generated configuration with `logstash -f` (default: false)')
-	parser.add_argument('-l', '--logstash-path', action='store', default='', help='Absolute path to logstash')
-	parser.add_argument('-n', '--no-grok-anchors', action='store_true', default=False, help='Removing the begining (^) and end ($) anchors in grok (default is to have them)')
-	parser.add_argument('-a', '--add-stop-anchors', action='store', default='', help='Add hard stop anchors in grok (as a serie of plain characters, only escaping " and \\) to ignore in-between chars, for example \\"()[] (default: "")')
-	parser.add_argument('-m', '--single-space-match', action='store_true', default=False, help='Only match 1 space if there is 1 space in the RSA parser (default: false, ie match 1-N spaces aka [\\s]+)')
 	parser.add_argument('-p', '--parse-url', action='store_true', default=False, help='Add a filter block to parse URLs into domain, query, etc (default: false)')
 	parser.add_argument('-q', '--parse-ua', action='store_true', default=False, help='Add a filter block to parse User Agents (default: false)')
 	parser.add_argument('-e', '--enrich-geo', action='store_true', default=False, help='Add a filter block to add geoip lookups on IPs (default: false)')
@@ -91,6 +86,11 @@ def init():
 	parser.add_argument('-r', '--remove-parsed-fields', action='store_true', default=False, help='Remove the event.original and message fields if correctly parsed (default: false)')
 	parser.add_argument('-s', '--rename', action='store_true', default=False, help='Renames RSA fields to ECS (default: false)')
 	parser.add_argument('-t', '--trim-fields', action='store_true', default=False, help='Trim (strip left and right spaces) from all string fields (default: false)')
+	parser.add_argument('-n', '--no-grok-anchors', action='store_true', default=False, help='Removing the begining (^) and end ($) anchors in grok (default is to have them)')
+	parser.add_argument('-a', '--add-stop-anchors', action='store', default='', help='Add hard stop anchors in grok (as a serie of plain characters, only escaping " and \\) to ignore in-between chars, for example \\"()[] (default: "")')
+	parser.add_argument('-m', '--single-space-match', action='store_true', default=False, help='Only match 1 space if there is 1 space in the RSA parser (default: false, ie match 1-N spaces aka [\\s]+)')
+	parser.add_argument('-c', '--check-config', action='store_true', default=False, help='Check the generated configuration with `logstash -f` (default: false)')
+	parser.add_argument('-l', '--logstash-path', action='store', default='', help='Absolute path to logstash')
 	parser.add_argument('-d', '--debug', action='store_true', default=False, help='Debug mode, more verbose (default: false)')
 	results = parser.parse_args()
 	# capture inputs
