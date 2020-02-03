@@ -103,9 +103,9 @@ def convertFile():
 				# now explore the xml tree 
 				for child in root:
 					nodeName = child.tag
-					rsaLine = ""; msgMatch = ""; config.dateFields = ""; config.dateFieldMutation = ""; config.dateMatching = ""
+					rsaLine = ""; msgMatch = ""; config.dateFieldMutation = ""; config.dateMatching = ""
 					config.messageId = ""; messageId1 = ""; messageId2 = ""; messageParserId = ""; headerId = ""; eventCategory = ""
-					config.addedFields = ""
+					config.addedFields = ""; config.parsingError = ""
 
 					# dealing with HEADER nodes
 					if nodeName == "HEADER":
@@ -125,9 +125,9 @@ def convertFile():
 								msgMatch = transformHeaderContent(nodeVal)
 								if config.DEBUG: print(nodeName + " " + headerId + " || " + nodeKey + " || " + nodeVal)
 						# check the msgMatch has been correctly generated
-						if msgMatch == "":
-							# empty msgMatch, ie content transformation didn't work, just say it
-							lsconfFilter = CR + "# HEADER " + headerId + CR + "# line in RSA: " + rsaLine + CR + "# Parsing error!"
+						if config.parsingError != "":
+							# content transformation didn't work, just say it
+							lsconfFilter = CR + "# HEADER " + headerId + CR + "# line in RSA: " + rsaLine + CR + "# Parsing error: " + config.parsingError
 						else:
 							# compose the filter section
 							lsconfFilter = CR + "# HEADER " + headerId + CR + "# line in RSA: " + rsaLine + CR + "filter {" + CR + t(1) + "if ![logstash][headerfound] {" + CR 
@@ -136,9 +136,9 @@ def convertFile():
 							else:
 								lsconfFilter = lsconfFilter + t(2) + "grok {" + CR + t(3) + "match => { " + msgMatch + " }" + CR 
 							# add a filter id for monitoring purpose
-							lsconfFilter = lsconfFilter + t(3) + "id => \"header-" + headerId + "\"" + CR
+							lsconfFilter = lsconfFilter + t(3) + "id => \"header-" + escapeString(headerId) + "\"" + CR
 							# add header id for debugging
-							lsconfFilter = lsconfFilter + t(3) + "add_field => {" + CR + t(4) + "\"[rsa][header][id]\" => \"" + headerId + "\"" + CR
+							lsconfFilter = lsconfFilter + t(3) + "add_field => {" + CR + t(4) + "\"[rsa][header][id]\" => \"" + escapeString(headerId) + "\"" + CR
 							# if no messageParserId, take the "messageid" field from parsing
 							if messageParserId == "":
 								lsconfFilter = lsconfFilter + t(4) + "\"[rsa][message][id2]\" => \"%{messageid}\"" + CR
@@ -146,11 +146,11 @@ def convertFile():
 								lsconfFilter = lsconfFilter + t(4) + "\"[rsa][message][id2]\" => \"" + messageParserId + "\"" + CR
 							# other added fields from the <@field:value> in header content
 							lsconfFilter = lsconfFilter + config.addedFields
-							if config.dateFields != "":
+							if config.dateFieldMutation != "":
 								lsconfFilter = lsconfFilter + t(4) + "\"[logstash][fullDateTimeString]\" => \"" + config.dateFieldMutation + "\"" + CR
 							lsconfFilter = lsconfFilter + t(4) + "\"[logstash][headerfound]\" => true" + CR + t(3) + "}" + CR + t(2) + "}" + CR
-							if config.dateFields != "":
-								lsconfFilter = lsconfFilter + t(2) + "if [logstash][fullDateTimeString] {" + CR + t(3) + "date { match => [\"[logstash][fullDateTimeString]\", \"" + config.dateMatching + "\" ] }" + CR + t(2) + "}" + CR
+							if config.dateFieldMutation != "":
+								lsconfFilter = lsconfFilter + t(2) + "if [logstash][fullDateTimeString] {" + CR + t(3) + "date { match => [ \"[logstash][fullDateTimeString]\", " + config.dateMatching + " ] }" + CR + t(2) + "}" + CR
 							lsconfFilter = lsconfFilter + t(1) + "}" + CR + "}"
 
 						# write the filter block
@@ -186,30 +186,30 @@ def convertFile():
 							lsFile.write(CR + CR + "###################################" + CR)
 							firstMsg = False
 						# check the msgMatch has been correctly generated
-						if msgMatch == "":
-							# empty msgMatch, ie content transformation didn#t work, just say it
-							lsconfFilter = CR + "# MESSAGE " + messageId1 + CR + "# line in RSA: " + rsaLine + CR + "# Parsing error!"
+						if config.parsingError != "":
+							# content transformation didn't work, just say it
+							lsconfFilter = CR + "# MESSAGE " + messageId1 + CR + "# line in RSA: " + rsaLine + CR + "# Parsing error: " + config.parsingError
 						else:
 							# compose the filter section
 							lsconfFilter = CR + "# MESSAGE " + messageId1 + CR + "# line in RSA: " + rsaLine + CR
-							lsconfFilter = lsconfFilter + "filter {" + CR + t(1) + "if ![logstash][messagefound] and [rsa][message][id2] == \"" + messageId2 + "\" {" + CR
+							lsconfFilter = lsconfFilter + "filter {" + CR + t(1) + "if ![logstash][messagefound] and [rsa][message][id2] == \"" + escapeString(messageId2) + "\" {" + CR
 							if config.withDissect:
 								lsconfFilter = lsconfFilter + t(2) + "dissect {" + CR + t(3) + "mapping => { " + msgMatch + " }" + CR
 							else:
 								lsconfFilter = lsconfFilter + t(2) + "grok {" + CR + t(3) + "match => { " + msgMatch + " }" + CR
 							# add a filter id for monitoring purpose
-							lsconfFilter = lsconfFilter + t(3) + "id => \"message-" + messageId1 + "\"" + CR
+							lsconfFilter = lsconfFilter + t(3) + "id => \"message-" + escapeString(messageId1) + "\"" + CR
 							# add new fields
-							config.addedFields = config.addedFields + t(4) + "\"[event][id]\" => \"" + config.messageId + "\"" + CR
-							config.addedFields = config.addedFields + t(4) + "\"[rsa][message][id1]\" => \"" + messageId1 + "\"" + CR
+							config.addedFields = config.addedFields + t(4) + "\"[event][id]\" => \"" + escapeString(config.messageId) + "\"" + CR
+							config.addedFields = config.addedFields + t(4) + "\"[rsa][message][id1]\" => \"" + escapeString(messageId1) + "\"" + CR
 							lsconfFilter = lsconfFilter + t(3) + "add_field => {" + CR + config.addedFields
 							# sometimes there is no date filter...
-							if config.dateFields != "":
+							if config.dateFieldMutation != "":
 								lsconfFilter = lsconfFilter + t(4) + "\"[logstash][fullDateTimeString]\" => \"" + config.dateFieldMutation + "\"" + CR
 							lsconfFilter = lsconfFilter + t(4) + "\"[logstash][messagefound]\" => true" + CR + t(3) + "}" + CR + t(2) + "}" + CR
 							# sometimes there is no date filter...
-							if config.dateFields != "":
-								lsconfFilter = lsconfFilter + t(2) + "if [logstash][fullDateTimeString] {" + CR + t(3) + "date { match => [\"[logstash][fullDateTimeString]\", \"" + config.dateMatching + "\" ] }" + CR + t(2) + "}" + CR
+							if config.dateFieldMutation != "":
+								lsconfFilter = lsconfFilter + t(2) + "if [logstash][fullDateTimeString] {" + CR + t(3) + "date { match => [ \"[logstash][fullDateTimeString]\", " + config.dateMatching + " ] }" + CR + t(2) + "}" + CR
 							lsconfFilter = lsconfFilter + t(1) + "}" + CR + "}"
 
 						# write the filter block
@@ -288,7 +288,7 @@ def convertFile():
 			# add the changes of names (ecs)
 			if config.RENAME_FIELDS:
 				lsFile.write(CR + "# Rename fields from RSA log parser meta field names in ECS (Elastic Common Schema) naming" + CR)
-				lsFile.write("filter {" + CR + t(1) + "mutate {" + CR + t(2) + "rename {" + CR)
+				lsFile.write("filter {" + CR + t(1) + "mutate {" + CR + t(2) + "rename => {" + CR)
 				for varKey in sorted(config.allFields):
 					# jump over the fld* fields
 					if varKey != "" and varKey[:3] != "fld" and varKey[:4] != "hfld":
@@ -327,7 +327,7 @@ def convertFile():
 			with open(config.OUTPUT_FILE,"r") as fi:
 				lsFile.write(fi.read())
 
-		print ("Conversion done!")
+		print ("Conversion done! See output file: " + str(config.LS_CONF_FILE))
 
 		# test the configuration file
 		if config.CHECK_CONF:

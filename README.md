@@ -2,7 +2,8 @@
 
 Converts Netwitness log parser configuration to Logstash configuration
 
-**Disclamer: Vincent Maury or Elastic cannot be held responsible for the use of this script! Use it at your own risk**
+**Disclamer: RSA2ELK is being published as an independent project (by Vincent Maury) and is in no way associated with, endorsed, or supported by Elastic. RSA2ELK is hereby released to the public as unsupported, open source software. Vincent Maury or Elastic cannot be held responsible for the use of this script! Use it at your own risk**
+
 
 ## Introduction (the why)
 
@@ -36,11 +37,6 @@ The script has several options:
 * `-i` or `--input-file FILE` to enter the absolute patch to the RSA XML configuration file. Alternative is url. See the note below for custom XML file.
 * `-u` or `--url URL` to enter the URL to the RSA XML configuration file. if no file or url is provided, this program will run on a [sample XML file](https://raw.githubusercontent.com/netwitness/nw-logparsers/master/devices/zscalernss/zscalernssmsg.xml) located in the RSA repo.
 * `-o` or `--output-file FILE` to enter the absolute path to the Logstash .conf file (default: `logstash-[device].conf`).
-* `-c` or `--check-config` runs on check of the generated configuration with `logstash -f` (default: false).
-* `-l` or `--logstash-path` to enter the absolute path to logstash bin executable (default is my local path!).
-* `-n` or `--no-grok-anchors` removes the begining (^) and end ($) anchors in grok (default: false, ie default is to have them).
-* `-a` or `--add-stop-anchors` adds hard stop anchors in grok to ignore in-between chars, see explanation below. Should be set as a serie of plain characters, only escaping " and \\. Example: `\"()[]` (default: "").
-* `-m` or `--single-space-match` to only match 1 space in the log if there is 1 space in the RSA parser (default: false, ie match 1-N spaces aka `[\s]+`).
 * `-p` or `--parse-url` adds a pre-defined filter block (see [filter-url.conf](filter-url.conf)) to parse URLs into domain, query, etc (default: false).
 * `-q` or `--parse-ua` adds a pre-defined filter block (see [filter-ua.conf](filter-ua.conf)) to parse User Agents (default: false).
 * `-e` or `--enrich-geo` adds a filter block (see [filter-geoip.conf](filter-geoip.conf)) to enrich public IPs with geoip information (default: false).
@@ -48,6 +44,11 @@ The script has several options:
 * `-r` or `--remove-parsed-fields` removes the event.original and message fields if correctly parsed (default: false).
 * `-s` or `--rename` renames default rsa fields to ECS fields (default: false).
 * `-t` or `--trim-fields` trims (strips left and right spaces) from all string fields (default: false).
+* `-n` or `--no-grok-anchors` removes the begining (^) and end ($) anchors in grok (default: false, ie default is to have them).
+* `-a` or `--add-stop-anchors` adds hard stop anchors in grok to ignore in-between chars, see explanation below. Should be set as a serie of plain characters, only escaping " and \\. Example: `\"()[]` (default: "").
+* `-m` or `--single-space-match` to only match 1 space in the log if there is 1 space in the RSA parser (default: false, ie match 1-N spaces aka `[\s]+`).
+* `-c` or `--check-config` runs on check of the generated configuration with `logstash -t` (default: false).
+* `-l` or `--logstash-path` to enter the absolute path to logstash bin executable (default is my local path!).
 * `-d` or `--debug` to enable debug mode, more verbose (default: false).
 
 ### Input

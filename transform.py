@@ -15,14 +15,15 @@ import re
 def transformDissect(s):
 	config.withDissect = True
 	# RSA escapes < with << and { with {{ (there can't be alternatives in dissect)
-	dissect = s.replace("<<",chr(220)).replace("\"","\\\"").replace("{{","{")
+	s = s.replace("<<",chr(220)).replace("{{","{")
+	dissect = s
 	# find all fields
 	pattern = re.compile("<([^<>]*)>")
 	for fld in pattern.finditer(s):
 		newfld = "%{" + fld.group(1) + "}"
 		dissect = dissect.replace(fld.group(0),newfld)
 		# keep all fields for later mutate (ecs)
-		config.allFields.add (fld.group(1))
+		config.allFields.add(fld.group(1))
 	# put the static < back
 	dissect = dissect.replace(chr(220),"<")
 	return dissect
@@ -66,12 +67,14 @@ def transformGrok(s, payloadField, finalDelimiter):
 							if alternative[:1] == "<":
 								# cannot be: <fld1>{a|<fld2>}
 								if config.DEBUG: print ("Parsing error because of <fld1>{a|<fld2>}: couldn't parse " + s)
+								config.parsingError = "Couldn't parse because of 2 adjacent fields like <fld1>{a|<fld2>}"
 								return ""
 							firstChars = firstChars + alternative[:1]
 						grok = grok + "(?<" + fieldName + ">[^" + escapeRegex(firstChars) + "]*)"
 					elif nextDelimiter == "<" and s[endField + 2: endField + 3] != "<":
 						# <fld1><fld2> cannot work, to be dropped
 						if config.DEBUG: print("Parsing error because of two fields: couldn't parse " + s)
+						config.parsingError = "Couldn't parse because of 2 adjacent fields like <fld1><fld2>"
 						return ""
 					else:
 						grok = grok + "(?<" + fieldName + ">[^" + escapeRegex(nextDelimiter) + "]*)"
@@ -80,11 +83,12 @@ def transformGrok(s, payloadField, finalDelimiter):
 					iChar = endField + 1
 				else:
 					if config.DEBUG: print("Parsing error: couldn't find the end of the new field " + s)
+					config.parsingError = "Couldn't find the end of the new field"
 					return ""
 		elif s[iChar:iChar+1] == "{":
 			# test if double {{ ({ escaped)
 			if s[iChar+1:iChar+2] == "{":
-				grok = grok + "\{"
+				grok = grok + "\\{"
 				iChar = iChar + 2
 			else:
 				# parse alternatives
@@ -120,63 +124,6 @@ def transformGrok(s, payloadField, finalDelimiter):
 	return grok
 
 
-# read the full rsa line and extract funcs and use dissect if there is no alternatives, or grok
-def transformFullRsaLine(s, msgField, payloadField):
-	msgMatch = ""
-	# find potential funcs and extract them
-	s = transformFunctions(s)
-	# if payload field is not empty, use grok anyway
-	if payloadField != "":
-		msgMatch = escapeGrok(transformGrok(s,payloadField,""))
-	else:
-		# look for alternatives
-		withAlternatives = False
-		pattern = re.compile("{")
-		for alternative in re.finditer(pattern, s):
-			# check if it's an escaped {
-			if s[alternative.start():alternative.start()+2] != "{{":
-				withAlternatives = True
-		# if there are alternatives, use grok, otherwise we can use dissect
-		if withAlternatives:
-			msgMatch = escapeGrok(transformGrok(s,payloadField,""))
-		else:
-			msgMatch = escapeDissect(transformDissect(s))
-	# get the message and return the full line
-	if msgMatch == "":
-		return ""
-	else:
-		return "\"" + msgField + "\" => " + msgMatch
-
-
-# get parsing string for a header and compute the corresponding dissect
-def transformHeaderContent(s):
-	# first, deal with <!payload> field (only in headers)
-	payloadField = ""
-	iPayload = s.find("<!payload")
-	if iPayload >= 0:
-		endPayload = s.find(">",iPayload)
-		if endPayload > 0:
-			# check for a field in the payload tag
-			if s[iPayload + 9: iPayload + 10] == ":":
-				payloadField = s[iPayload + 10: endPayload]
-				# replace it by a normal "payload" field because the "message" field (parsed by message content) will start at the payload field
-				s = s.replace(s[iPayload: endPayload + 1], "<payload>")
-			else:
-				# the "message" field is at the end
-				s = s.replace(s[iPayload: endPayload + 1], "<message>")
-		else:
-			if config.DEBUG: print("Error in payload field: " + s)
-	else:
-		if config.DEBUG: print("Error in payload field, missing payload: " + s)
-	# return the match
-	return transformFullRsaLine(s, "[event][original]", payloadField)
-
-
-# get parsing string for a message and compute the corresponding dissect
-def transformMessageContent(s):
-	# return the dissect match
-	return transformFullRsaLine(s, "message", "")
-
 
 # transform functions
 def transformFunctions(s):
@@ -192,11 +139,12 @@ def transformFunctions(s):
 			if config.DEBUG: print ("The field " + k + "is defined twice in " + s)
 		else:
 			if v[:9] == "*EVNTTIME":
-				# compute the timestamp field
-				config.dateFields = extractDateFields(v)
-				config.dateFieldMutation = "%{" + config.dateFields.replace(",", "} %{") + "}"
-				# extract date parsing and convert it to logstash format
-				config.dateMatching = convertDate(v)
+				# form: @event_time:*EVNTTIME($MSG,'%B %F %N:%U:%O %W',datetime)
+				# sometimes used for other fields than event_time, so we check first
+				if k == "event_time":
+					# compute the timestamp field
+					config.dateFieldMutation = "%{" + "} %{".join(re.findall(",([a-z0-9\._]+)", v)) + "}"
+					config.dateMatching = convertDate(v)
 			elif v[:7] == "*STRCAT":
 				# transform <@fld:*STRCAT(a,b)> for instance
 				catenateFields = convertStrcat(v)
@@ -229,3 +177,63 @@ def transformFunctions(s):
 		s = s.replace(rsaFunc.group(0),"")
 	# when further parsing is planned, return the string with no funcs
 	return s
+
+
+# read the full rsa line and extract funcs and use dissect if there is no alternatives, or grok
+def transformFullRsaLine(s, msgField, payloadField):
+	msgMatch = ""
+	# check if the string ends with a \ which is not supported, see issue https://github.com/elastic/logstash/issues/9701
+	if s[-1:] == "\\":
+		config.parsingError = "String ends with a \\ which is not supported, see issue https://github.com/elastic/logstash/issues/9701"
+		return ""
+	# find potential funcs and extract them
+	s = transformFunctions(s)
+	# if payload field is not empty, use grok anyway
+	if payloadField != "":
+		msgMatch = escapeGrok(transformGrok(s,payloadField,""))
+	else:
+		# look for alternatives
+		withAlternatives = False
+		pattern = re.compile("{")
+		for alternative in re.finditer(pattern, s):
+			# check if it's an escaped {
+			if s[alternative.start():alternative.start()+2] != "{{":
+				withAlternatives = True
+		# if there are alternatives, use grok, otherwise we can use dissect
+		if withAlternatives:
+			msgMatch = escapeGrok(transformGrok(s,payloadField,""))
+		else:
+			msgMatch = escapeDissect(transformDissect(s))
+	# get the message and return the full line
+	return "\"" + msgField + "\" => " + msgMatch
+
+
+# get parsing string for a header and compute the corresponding dissect
+def transformHeaderContent(s):
+	# first, deal with <!payload> field (only in headers)
+	payloadField = ""
+	iPayload = s.find("<!payload")
+	if iPayload >= 0:
+		endPayload = s.find(">",iPayload)
+		if endPayload > 0:
+			# check for a field in the payload tag
+			if s[iPayload + 9: iPayload + 10] == ":":
+				payloadField = s[iPayload + 10: endPayload]
+				# replace it by a normal "payload" field because the "message" field (parsed by message content) will start at the payload field
+				s = s.replace(s[iPayload: endPayload + 1], "<payload>")
+			else:
+				# the "message" field is at the end
+				s = s.replace(s[iPayload: endPayload + 1], "<message>")
+		else:
+			if config.DEBUG: print("Error in payload field: " + s)
+	else:
+		if config.DEBUG: print("Error in payload field, missing payload: " + s)
+	# return the match
+	return transformFullRsaLine(s, "[event][original]", payloadField)
+
+
+# get parsing string for a message and compute the corresponding dissect
+def transformMessageContent(s):
+	# return the dissect match
+	return transformFullRsaLine(s, "message", "")
+
