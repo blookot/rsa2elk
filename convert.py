@@ -13,7 +13,7 @@ from transform import *
 from os import system
 from os import path
 import xml.etree.ElementTree as et
-
+import json
 
 
 def convertFile():
@@ -23,11 +23,7 @@ def convertFile():
 
 		print("*** Starting file conversion for " + str(config.XML_FILE))
 		# get ecs mapping from file
-		with open(config.MAPPING_FILE,"r") as f:
-			for l in f:
-				splitRes = l.split("||")
-				config.ecsField[splitRes[0]] = splitRes[1].replace("\n","")
-				config.ecsType[splitRes[0]] = splitRes[2].replace("\n","")
+		initMapping()
 
 		# get ecat file to enrich categories
 		with open(config.ECAT_FILE,"r") as f:
@@ -253,18 +249,33 @@ def convertFile():
 				with open(config.ASN_FILTER_FILE,"r") as fi:
 					lsFile.write(fi.read())
 
-			# add the changes of types (to prepare for ecs mapping and get all other fields as string)
-			lsFile.write(CR + "# Convert types of fields" + CR)
-			lsFile.write("filter {" + CR + t(1) + "mutate {" + CR + t(2) + "convert => {" + CR)
-			for varKey in sorted(config.allFields):
-				# jump over the fld* fields
-				if varKey != "" and varKey[:3] != "fld" and varKey[:4] != "hfld":
-					# if field exists in ECS mapping then rename it, otherwise, leave it as it is
-					if varKey in config.ecsField:
-						lsFile.write(t(3) + "\"" + varKey + "\" => \"" + config.ecsType[varKey] + "\"" + CR)
-					else:
-						lsFile.write(t(3) + "\"" + varKey + "\" => \"string\"" + CR)
-			lsFile.write(t(2) + "}" + CR + t(1) + "}" + CR + "}" + CR)
+			# generate the index mapping for ES
+			with open(config.ES_MAPPING_FILE,"w",newline=None,encoding="utf-8") as esMappingFile:
+				# write settings and few first lines
+				config.esMap["index_patterns"] = rsaConfigName + "*"
+				config.esMap["settings"]["number_of_shards"] = config.NB_SHARDS
+				config.esMap["settings"]["number_of_replicas"] = config.NB_REPLICAS
+				config.esMap["settings"]["index.refresh_interval"] = config.REFRESH_INTERVAL
+				config.esMap["mappings"]["properties"]["@timestamp"] = { "type" : "date" }
+				config.esMap["mappings"]["properties"]["@version"] = { "type" : "keyword" }
+				# write field mapping
+				for varKey in sorted(config.allFields):
+					# jump over the fld* fields
+					if varKey != "" and varKey[:3] != "fld" and varKey[:4] != "hfld":
+						# if field doesn't exist in ECS mapping, we don't care, we'll just leave them as they are (indexed as text)
+						if varKey in config.ecsField:
+							# if type is text, we let ES create the field and the field.keyword automatically
+							if config.RENAME_FIELDS and config.ecsType[varKey] != "text":
+								# fields have been renamed in LS
+								generateFieldMapping(config.ecsField[varKey], config.ecsType[varKey])
+							if not config.RENAME_FIELDS and config.ecsType[varKey] != "text":
+								# just keeping the raw RSA field name, but changing the type
+								generateFieldMapping(varKey, config.ecsType[varKey])
+						else:
+							# TODO support table-map.xml to change types of fields that are custom
+							if config.DEBUG: print("TODO")
+				# write the list of fields (without the last comma)
+				esMappingFile.write(json.dumps(config.esMap, indent=4))
 
 			# trim (strip) all text fields
 			if config.TRIM_FIELDS:
@@ -325,7 +336,8 @@ def convertFile():
 
 			# add output lines of logstash conf
 			with open(config.OUTPUT_FILE,"r") as fi:
-				lsFile.write(fi.read())
+				# just replace the template name with the name ()
+				lsFile.write(fi.read().replace("%{[observer][product]}_template",rsaConfigName+"_template"))
 
 		print ("Conversion done! See output file: " + str(config.LS_CONF_FILE))
 
