@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 import argparse
 import urllib.request
-
+import collections
 
 # variables
 DEBUG = False
@@ -25,8 +25,9 @@ XML_FILE = ""; XML_CUSTOM_FILE = ""
 LS_CONF_FILE = ""; LS_OUTPUT_PATH = ""; LS_OUTPUT_FNAME = ""
 LS_EXEC = Path("C:/Users/maury/Documents/tech/logstash-7.5.0/bin/logstash.bat")
 LS_STDOUT_FILE = ""
+ES_MAPPING_FILE = ""
 # other files
-MAPPING_FILE = Path(CURRENT_DIR) / "rsa2ecs.txt"
+MAPPING_FILE = Path(CURRENT_DIR) / "table-map.csv"
 ECAT_FILE = Path(CURRENT_DIR) / "ecat.ini"
 INPUT_FILE = Path(CURRENT_DIR) / "input.conf"
 OUTPUT_FILE = Path(CURRENT_DIR) / "output.conf"
@@ -39,15 +40,20 @@ NO_GROK_ANCHORS = False
 SINGLE_SPACE = False
 ADD_STOP_ANCHORS = ""
 REMOVE_PARSED_FIELDS = False
-RENAME_FIELDS = False
 TRIM_FIELDS = False
 PARSE_URL = False
 PARSE_UA = False
 ENRICH_GEO = False
 ENRICH_ASN = False
+RENAME_FIELDS = False
+NB_SHARDS = "1"
+NB_REPLICAS = "1"
+REFRESH_INTERVAL = "5s"
 
 # internal global structures
 addedFields = ""
+nested_dict = lambda: collections.defaultdict(nested_dict)
+esMap = nested_dict()
 ecsField = {}
 ecsType = {}
 ecat = {}
@@ -67,7 +73,7 @@ def init():
 	global LS_EXEC
 	global DEVICE; global DEVICE_FNAME; global DEVICE_PATH; global DEVICE_EXTENSION 
 	global XML_FILE; global XML_CUSTOM_FILE
-	global LS_CONF_FILE; global LS_OUTPUT_PATH; global LS_OUTPUT_FNAME; global LS_STDOUT_FILE
+	global LS_CONF_FILE; global LS_OUTPUT_PATH; global LS_OUTPUT_FNAME; global LS_STDOUT_FILE; global ES_MAPPING_FILE
 	global NO_GROK_ANCHORS ; global SINGLE_SPACE; global ADD_STOP_ANCHORS; global REMOVE_PARSED_FIELDS; global TRIM_FIELDS; global RENAME_FIELDS
 	global PARSE_URL; global PARSE_UA; global ENRICH_GEO; global ENRICH_ASN
 
@@ -83,8 +89,8 @@ def init():
 	parser.add_argument('-q', '--parse-ua', action='store_true', default=False, help='Add a filter block to parse User Agents (default: false)')
 	parser.add_argument('-e', '--enrich-geo', action='store_true', default=False, help='Add a filter block to add geoip lookups on IPs (default: false)')
 	parser.add_argument('-f', '--enrich-asn', action='store_true', default=False, help='Add a filter block to add ASN lookups on IPs (default: false)')
-	parser.add_argument('-r', '--remove-parsed-fields', action='store_true', default=False, help='Remove the event.original and message fields if correctly parsed (default: false)')
-	parser.add_argument('-s', '--rename', action='store_true', default=False, help='Renames RSA fields to ECS (default: false)')
+	parser.add_argument('-x', '--remove-parsed-fields', action='store_true', default=False, help='Remove the event.original and message fields if correctly parsed (default: false)')
+	parser.add_argument('-r', '--rename-ecs', action='store_true', default=False, help='Renames RSA fields to ECS (default: false)')
 	parser.add_argument('-t', '--trim-fields', action='store_true', default=False, help='Trim (strip left and right spaces) from all string fields (default: false)')
 	parser.add_argument('-n', '--no-grok-anchors', action='store_true', default=False, help='Removing the begining (^) and end ($) anchors in grok (default is to have them)')
 	parser.add_argument('-a', '--add-stop-anchors', action='store', default='', help='Add hard stop anchors in grok (as a serie of plain characters, only escaping " and \\) to ignore in-between chars, for example \\"()[] (default: "")')
@@ -138,21 +144,25 @@ def init():
 	if results.output_file != '':
 		LS_CONF_FILE = Path(results.output_file)
 		(LS_OUTPUT_PATH, LS_OUTPUT_FNAME) = os.path.split(LS_CONF_FILE)
+		ES_MAPPING_FILE = Path(LS_OUTPUT_PATH) / "es-mapping.json"
 		# if same folder, just add it
 		if LS_OUTPUT_PATH == "":
 			LS_CONF_FILE = Path(CURRENT_DIR) / LS_OUTPUT_FNAME
+			ES_MAPPING_FILE = Path(CURRENT_DIR) / "es-mapping.json"
 	else:
 		if DEVICE_PATH == "":
 			LS_CONF_FILE = Path(CURRENT_DIR) / ("logstash-" + DEVICE + ".conf")
+			ES_MAPPING_FILE = Path(CURRENT_DIR) / "es-mapping.json"
 		else:
 			LS_CONF_FILE = Path(DEVICE_PATH) / ("logstash-" + DEVICE + ".conf")
+			ES_MAPPING_FILE = Path(DEVICE_PATH) / "es-mapping.json"
 	CHECK_CONF = results.check_config
 	NO_GROK_ANCHORS = results.no_grok_anchors
 	SINGLE_SPACE = results.single_space_match
 	ADD_STOP_ANCHORS = results.add_stop_anchors
 	REMOVE_PARSED_FIELDS = results.remove_parsed_fields
 	TRIM_FIELDS = results.trim_fields
-	RENAME_FIELDS = results.rename
+	RENAME_FIELDS = results.rename_ecs
 	PARSE_URL = results.parse_url
 	PARSE_UA = results.parse_ua
 	ENRICH_GEO = results.enrich_geo
