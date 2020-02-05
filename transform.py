@@ -166,6 +166,9 @@ def transformFunctions(s):
 						config.messageId = "%{" + v[5:-1] + "}"
 					else:
 						config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[5:-1] + "}\"" + CR
+			elif v[:1] == "*":
+				# let's see if it's one of the functions defined in the valuemap, in the form of @ec_activity:*getEventCategoryActivity(action)
+				getValueMap(k,v)
 			elif v[:1] != "*":
 				# static field
 				config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + v + "\"" + CR

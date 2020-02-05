@@ -102,6 +102,7 @@ def convertFile():
 					rsaLine = ""; msgMatch = ""; config.dateFieldMutation = ""; config.dateMatching = ""
 					config.messageId = ""; messageId1 = ""; messageId2 = ""; messageParserId = ""; headerId = ""; eventCategory = ""
 					config.addedFields = ""; config.parsingError = ""
+					vmName = ""; vmDefault = ""; vmKV = dict()
 
 					# dealing with HEADER nodes
 					if nodeName == "HEADER":
@@ -151,6 +152,21 @@ def convertFile():
 
 						# write the filter block
 						lsFile.write(lsconfFilter)
+
+					# read the VALUEMAP nodes to enrich messages
+					if nodeName == "VALUEMAP":
+						for nodeKey in child.attrib:
+							nodeVal = child.attrib[nodeKey]
+							# get the 3 attributes of the func
+							if nodeKey == "name":
+								vmName = nodeVal
+							if nodeKey == "default":
+								vmDefault = nodeVal.replace("$NONE","")
+							if nodeKey == "keyvaluepairs":
+								# first convert the value into a dict
+								vmKV = dict( (k.strip(), v.replace("'","").strip()) for k,v in (item.split('=') for item in nodeVal.split('|')) )
+						# finally populate the vm dict
+						config.valueMap[vmName] = {"default": vmDefault, "kv": vmKV}
 
 					# dealing with MESSAGE nodes
 					if nodeName == "MESSAGE":
@@ -214,16 +230,20 @@ def convertFile():
 			# visual separator after all messages
 			lsFile.write(CR + CR + "###################################" + CR)
 
-			# enrich events with categories
-			# lsFile.write(CR + "# Translate event category id in a name (using ecat.ini file from rsa, renamed in ecat.csv)" + CR)
-			# lsFile.write()"filter {" + CR + t(1) + "translate {" + CR)
-			# lsFile.write(t(2) + "dictionary_path => ""ecat.csv""" + CR)
-			# lsFile.write(t(2) + "fallback => ""Other""" + CR)
-			# lsFile.write(t(2) + "refresh_interval => 86400" + CR)
-			# lsFile.write(t(2) + "refresh_behaviour => ""replace""" + CR)
-			# lsFile.write(t(2) + "field => ""event.categoryid""" + CR)
-			# lsFile.write(t(2) + "destination => ""event.category""" + CR)
-			# lsFile.write(t(1) + "}" + CR + "}" + CR)
+			# enrich using VALUEMAP, see https://www.elastic.co/guide/en/logstash/current/plugins-filters-translate.html
+			lsFile.write(CR + "# Enrich events using VALUEMAP" + CR)
+			for vm in config.valueMap:
+				# sometimes value maps are not used in messages, so let's check this first!
+				if "fld" in config.valueMap[vm]:
+					lsFile.write("filter {" + CR + t(1) + "translate {" + CR)
+					lsFile.write(t(2) + "field => \"[" + config.valueMap[vm]["fld"] + "]\"" + CR)
+					lsFile.write(t(2) + "destination => \"[" + config.valueMap[vm]["newFld"] + "]\"" + CR)
+					lsFile.write(t(2) + "dictionary => {" + CR)
+					for k,v in config.valueMap[vm]["kv"].items():
+						lsFile.write(t(3) + "\"" + k + "\" => \"" + v + "\"" + CR)
+					lsFile.write(t(2) + "}" + CR)
+					lsFile.write(t(2) + "fallback => \"" + config.valueMap[vm]["default"] + "\"" + CR)
+					lsFile.write(t(1) + "}" + CR + "}" + CR)
 
 			# parse urls
 			if config.PARSE_URL:
@@ -251,13 +271,20 @@ def convertFile():
 
 			# generate the index mapping for ES
 			with open(config.ES_MAPPING_FILE,"w",newline=None,encoding="utf-8") as esMappingFile:
-				# write settings and few first lines
+				# write settings
 				config.esMap["index_patterns"] = rsaConfigName + "*"
 				config.esMap["settings"]["number_of_shards"] = config.NB_SHARDS
 				config.esMap["settings"]["number_of_replicas"] = config.NB_REPLICAS
 				config.esMap["settings"]["index.refresh_interval"] = config.REFRESH_INTERVAL
+				# write mandatory timestamp & version fields
 				config.esMap["mappings"]["properties"]["@timestamp"] = { "type" : "date" }
 				config.esMap["mappings"]["properties"]["@version"] = { "type" : "keyword" }
+				# write geopoint mapping
+				config.esMap["mappings"]["properties"]["geo"]["properties"]["location"] = { "type" : "geo_point" }
+				config.esMap["mappings"]["properties"]["source"]["properties"]["geo"]["properties"]["location"] = { "type" : "geo_point" }
+				config.esMap["mappings"]["properties"]["destination"]["properties"]["geo"]["properties"]["location"] = { "type" : "geo_point" }
+				config.esMap["mappings"]["properties"]["host"]["properties"]["geo"]["properties"]["location"] = { "type" : "geo_point" }
+				config.esMap["mappings"]["properties"]["observer"]["properties"]["geo"]["properties"]["location"] = { "type" : "geo_point" }
 				# write field mapping
 				for varKey in sorted(config.allFields):
 					# jump over the fld* fields
@@ -336,7 +363,7 @@ def convertFile():
 
 			# add output lines of logstash conf
 			with open(config.OUTPUT_FILE,"r") as fi:
-				# just replace the template name with the name ()
+				# just replace the template name with the name (as the template key doesn't support field notation)
 				lsFile.write(fi.read().replace("%{[observer][product]}_template",rsaConfigName+"_template"))
 
 		print ("Conversion done! See output file: " + str(config.LS_CONF_FILE))

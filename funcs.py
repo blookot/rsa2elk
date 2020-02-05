@@ -176,3 +176,21 @@ def initMapping():
     if noComma and noSemiColon:
         print("CSV mapping file expecting ; or , delimiter. Exiting...")
         sys.exit(-1)
+
+# get a possible valuemap func and store the fields
+def getValueMap(fld,vmFunc):
+    # form is *getEventCategoryActivity(action)
+    pattern = re.compile("\*([^\(]+)\(([^\)]+)\)")
+    m = pattern.match(vmFunc)
+    k,v = m.group(1),m.group(2)
+    # let's look for the func in the valuemap funcs we've stored
+    if k in config.valueMap:
+        # record the func parameter as the key
+        config.valueMap[k]["fld"] = v
+        # record the destination field as well
+        if fld != v:
+            config.valueMap[k]["newFld"] = fld
+        else:
+            # we shouldn't have to rename it, it's a bug, see https://github.com/elastic/logstash/issues/11585
+            config.valueMap[k]["newFld"] = "new" + fld
+            config.allFields.add("new" + fld)
