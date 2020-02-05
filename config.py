@@ -54,6 +54,7 @@ REFRESH_INTERVAL = "5s"
 addedFields = ""
 nested_dict = lambda: collections.defaultdict(nested_dict)
 esMap = nested_dict()
+valueMap = dict()
 ecsField = {}
 ecsType = {}
 ecat = {}
