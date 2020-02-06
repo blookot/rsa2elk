@@ -112,6 +112,20 @@ def transformGrok(s, payloadField, finalDelimiter):
 						grok = grok + transformGrok(alternative, "", nextDelimiter) + "|"
 					grok = grok[:-1] + ")"
 					iChar = endAlt + 1
+		elif s[iChar:iChar+1] == " ":
+			# by default, all spaces should be grouped into a [\s]+, unless SINGLE_SPACE option specified
+			if config.SINGLE_SPACE:
+				grok = grok + "\s"
+			else:
+				grok = grok + "[\s]+"
+			iChar = iChar + 1
+			while iChar <= len(s) and s[iChar: iChar+1] == " ":
+				iChar = iChar + 1
+		elif s[iChar:iChar+1] != "" and s[iChar:iChar+1] in config.ADD_STOP_ANCHORS:
+			# one of the hard stop characters
+			grok = grok + "(?<anchorfld" + str(config.anchorFldId) + ">[^" + escapeRegex(s[iChar:iChar+1]) + "]*)" + escapeRegex(s[iChar: iChar+1])
+			config.anchorFldId = config.anchorFldId + 1
+			iChar = iChar + 1
 		else:
 		# all other characters
 			grok = grok + escapeRegex(s[iChar: iChar+1])
