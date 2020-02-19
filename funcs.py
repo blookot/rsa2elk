@@ -21,11 +21,14 @@ def t(n):
         t=t+"\t"
     return t
 
+# Replace all RSA date syntax with LS date filter one
 def convertDate(s):
     dateList = set()
     pattern = re.compile(",'([^']+)'")
     for dStr in pattern.finditer(s):
         c = dStr.group(1)
+        # first, replace all non coding (not having a %) chars, like T, cf https://www.elastic.co/guide/en/logstash/current/plugins-filters-date.html#plugins-filters-date-match
+        c = re.sub("([^%])([a-zA-Z]+)", r"\1'\2'", c)
         # replace the specific chars by their logstash date filter equivalent
         c = c.replace("%C", "M/d/yy H:m:s")
         c = c.replace("%R", "MMMM")
@@ -158,7 +161,8 @@ def initMapping():
         try:
             reader = csv.DictReader(csvFile, delimiter=',')
             for row in reader:
-                if row['ecsName'] != "":
+                # if field is flagged as "Transient", we don't take it into consideration
+                if row['ecsName'] != "" and row['flags'] != "Transient":
                     config.ecsField[row['envisionName']] = row['ecsName']
                     config.ecsType[row['envisionName']] = row['ecsType']
         except:
@@ -168,7 +172,8 @@ def initMapping():
             try:
                 reader = csv.DictReader(csvFile, delimiter=';')
                 for row in reader:
-                    if row['ecsName'] != "":
+                    # if field is flagged as "Transient", we don't take it into consideration
+                    if row['ecsName'] != "" and row['flags'] != "Transient":
                         config.ecsField[row['envisionName']] = row['ecsName']
                         config.ecsType[row['envisionName']] = row['ecsType']
             except:
@@ -182,15 +187,12 @@ def getValueMap(fld,vmFunc):
     # form is *getEventCategoryActivity(action)
     pattern = re.compile("\*([^\(]+)\(([^\)]+)\)")
     m = pattern.match(vmFunc)
-    k,v = m.group(1),m.group(2)
-    # let's look for the func in the valuemap funcs we've stored
-    if k in config.valueMap:
-        # record the func parameter as the key
-        config.valueMap[k]["fld"] = v
-        # record the destination field as well
-        if fld != v:
+    if m is not None:
+        k,v = m.group(1),m.group(2)
+        # let's look for the func in the valuemap funcs we've stored
+        if k in config.valueMap:
+            # record the func parameter as the key
+            config.valueMap[k]["fld"] = v
+            # record the destination field as well
             config.valueMap[k]["newFld"] = fld
-        else:
-            # we shouldn't have to rename it, it's a bug, see https://github.com/elastic/logstash/issues/11585
-            config.valueMap[k]["newFld"] = "new" + fld
-            config.allFields.add("new" + fld)
+            config.allFields.add(fld)
