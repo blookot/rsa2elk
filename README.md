@@ -127,11 +127,11 @@ The latest added features are:
 * support the VendorProducts keys in cef.xml (yet to support the ExtensionKey renamings)
 * manage geopoint in mapping when doing geoip
 * support VALUEMAP, converted as translation filter
-* faire mapping es précis dans logstash (template es) basé sur types du tableau de mapping ecs
-+ remonter des infos plus précises en cas de parsing error
+* generate a precise Elasticsearch index template mapping based on ECS or default RSA types
+* explicitly display the reason of parsing errors in the configuration
 
 A few bugs have recently been fixed as well :
-* The `T` that sometimes is used in date formats
+* The `T` that sometimes is used in date formats and should be escaped
 * many other date format issues (%K %L %Q or %E used and not documented for instance)
 * several EVNTTIME strings (as multiple possible matches)
 * double field attributions
@@ -155,8 +155,8 @@ The main changes since [v1](v1/) are listed here:
 ## TODO
 
 There are still a few ideas to improve this rsa2elk:
-* support value map (key/value translation)
-* optimize the few (very) long RSA configuration files that have the same message parser multiple times
+* enrich events to get the message id1 and event category
+* support enrichment files and custom metadata files
 * input a custom `table-map.xml` and `table-map-custom.xml` (RSA customers) for custom fields
 * support additional custom enrichment with external files (RSA customers)
 * port this converter to Elasticsearch ingest pipeline (see [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/pipeline.html)), specially since Elasticsearch 7.5 added an enrichment processor
