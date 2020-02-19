@@ -117,7 +117,11 @@ def transformGrok(s, payloadField, finalDelimiter):
 			if config.SINGLE_SPACE:
 				grok = grok + "\s"
 			else:
-				grok = grok + "[\s]+"
+				# if content string starts with a space (like in v20_dragonidsmsg.xml), make it optional
+				if iChar == 0:
+					grok = grok + "[\s]*"
+				else:
+					grok = grok + "[\s]+"
 			iChar = iChar + 1
 			while iChar <= len(s) and s[iChar: iChar+1] == " ":
 				iChar = iChar + 1
@@ -142,54 +146,56 @@ def transformGrok(s, payloadField, finalDelimiter):
 # transform functions
 def transformFunctions(s):
 	# get each part of the functions string (excluding < and >)
-	pattern = re.compile("<@([a-z_]+):([^>]+)>")
+	pattern = re.compile("<@([a-z_]+)?:([^>]+)>")
 	# keep the list of fields, because sometimes they are defined twice! like in devices/astarosg/astarosgmsg.xml
 	newFuncFields = set()
 	for rsaFunc in pattern.finditer(s):
 		k, v = rsaFunc.group(1), rsaFunc.group(2)
-		# check if this field hasn't been read yet
-		if k in newFuncFields:
-			# again the same field!
-			if config.DEBUG: print ("The field " + k + "is defined twice in " + s)
-		else:
-			if v[:9] == "*EVNTTIME":
-				# form: @event_time:*EVNTTIME($MSG,'%B %F %N:%U:%O %W',datetime)
-				# sometimes used for other fields than event_time, so we check first
-				if k == "event_time":
-					# compute the timestamp field
-					config.dateFieldMutation = "%{" + "} %{".join(re.findall(",([a-z0-9\._]+)", v)) + "}"
-					config.dateMatching = convertDate(v)
-			elif v[:7] == "*STRCAT":
-				# transform <@fld:*STRCAT(a,b)> for instance
-				catenateFields = convertStrcat(v)
-				if k == "msg_id":
-					config.messageId = catenateFields
-				else:
-					config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + catenateFields + "\"" + CR
-			elif v[:8] == "*PARMVAL":
-				# transform <@fld1:*PARMVAL(fld2)> for instance (that copies fld2 in fld1)
-				if k != "msg":
+		# check first if there is a key (to avoid @:*...)
+		if k is not None:
+			# check if this field hasn't been read yet
+			if k in newFuncFields:
+				# again the same field!
+				if config.DEBUG: print ("The field " + k + "is defined twice in " + s)
+			else:
+				if v[:9] == "*EVNTTIME":
+					# form: @event_time:*EVNTTIME($MSG,'%B %F %N:%U:%O %W',datetime)
+					# sometimes used for other fields than event_time, so we check first
+					if k == "event_time":
+						# compute the timestamp field
+						config.dateFieldMutation = "%{" + "} %{".join(re.findall(",([a-z0-9\._]+)", v)) + "}"
+						config.dateMatching = convertDate(v)
+				elif v[:7] == "*STRCAT":
+					# transform <@fld:*STRCAT(a,b)> for instance
+					catenateFields = convertStrcat(v)
 					if k == "msg_id":
-						config.messageId = "%{" + v[9:-1] + "}"
+						config.messageId = catenateFields
 					else:
-						config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[9:-1] + "}\"" + CR
-			elif v[:4] == "*HDR":
-				# transform <@fld:*HDR(hfld)> for instance (that copies a header field hfld in fld)
-				if k != "msg":
-					if k == "msg_id":
-						config.messageId = "%{" + v[5:-1] + "}"
-					else:
-						config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[5:-1] + "}\"" + CR
-			elif v[:1] == "*":
-				# let's see if it's one of the functions defined in the valuemap, in the form of @ec_activity:*getEventCategoryActivity(action)
-				getValueMap(k,v)
-			elif v[:1] != "*":
-				# static field
-				config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + v + "\"" + CR
-			# record the field anyway
-			newFuncFields.add(k)
-			# keep all fields for later mutate (ecs)
-			config.allFields.add(k)
+						config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + catenateFields + "\"" + CR
+				elif v[:8] == "*PARMVAL":
+					# transform <@fld1:*PARMVAL(fld2)> for instance (that copies fld2 in fld1)
+					if k != "msg":
+						if k == "msg_id":
+							config.messageId = "%{" + v[9:-1] + "}"
+						else:
+							config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[9:-1] + "}\"" + CR
+				elif v[:4] == "*HDR":
+					# transform <@fld:*HDR(hfld)> for instance (that copies a header field hfld in fld)
+					if k != "msg":
+						if k == "msg_id":
+							config.messageId = "%{" + v[5:-1] + "}"
+						else:
+							config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"%{" + v[5:-1] + "}\"" + CR
+				elif v[:1] == "*":
+					# let's see if it's one of the functions defined in the valuemap, in the form of @ec_activity:*getEventCategoryActivity(action)
+					getValueMap(k,v)
+				elif v[:1] != "*":
+					# static field
+					config.addedFields = config.addedFields + t(4) + "\"" + k + "\" => \"" + v + "\"" + CR
+				# record the field anyway
+				newFuncFields.add(k)
+				# keep all fields for later mutate (ecs)
+				config.allFields.add(k)
 		# anyway (recognized func or not), delete it
 		s = s.replace(rsaFunc.group(0),"")
 	# when further parsing is planned, return the string with no funcs

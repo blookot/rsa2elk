@@ -26,6 +26,7 @@ LS_CONF_FILE = ""; LS_OUTPUT_PATH = ""; LS_OUTPUT_FNAME = ""
 LS_EXEC = Path("C:/Users/maury/Documents/tech/logstash-7.5.0/bin/logstash.bat")
 LS_STDOUT_FILE = ""
 ES_MAPPING_FILE = ""
+MSG2PARSER_DICT_FILE = ""
 # other files
 MAPPING_FILE = Path(CURRENT_DIR) / "table-map.csv"
 ECAT_FILE = Path(CURRENT_DIR) / "ecat.ini"
@@ -38,8 +39,11 @@ ASN_FILTER_FILE = Path(CURRENT_DIR) / "filter-asn.conf"
 # converter tuning
 NO_GROK_ANCHORS = False
 SINGLE_SPACE = False
+HEADERS_ONLY = False
 ADD_STOP_ANCHORS = ""
 REMOVE_PARSED_FIELDS = False
+REMOVE_ORIG_MSG = False
+REMOVE_UNNAMED_FIELDS = False
 TRIM_FIELDS = False
 PARSE_URL = False
 PARSE_UA = False
@@ -54,7 +58,12 @@ REFRESH_INTERVAL = "5s"
 addedFields = ""
 nested_dict = lambda: collections.defaultdict(nested_dict)
 esMap = nested_dict()
+headers = []
+messages = []
 valueMap = dict()
+vendorToDevice = []	# specific for cef.xml
+id2s = dict()	# simple structure to link messageId2 -> parserId, messageId1 & ecat
+msgParsers = []
 ecsField = {}
 ecsType = {}
 ecat = {}
@@ -74,9 +83,9 @@ def init():
 	global LS_EXEC
 	global DEVICE; global DEVICE_FNAME; global DEVICE_PATH; global DEVICE_EXTENSION 
 	global XML_FILE; global XML_CUSTOM_FILE
-	global LS_CONF_FILE; global LS_OUTPUT_PATH; global LS_OUTPUT_FNAME; global LS_STDOUT_FILE; global ES_MAPPING_FILE
-	global NO_GROK_ANCHORS ; global SINGLE_SPACE; global ADD_STOP_ANCHORS; global REMOVE_PARSED_FIELDS; global TRIM_FIELDS; global RENAME_FIELDS
-	global PARSE_URL; global PARSE_UA; global ENRICH_GEO; global ENRICH_ASN
+	global LS_CONF_FILE; global LS_OUTPUT_PATH; global LS_OUTPUT_FNAME; global LS_STDOUT_FILE; global ES_MAPPING_FILE; global MSG2PARSER_DICT_FILE
+	global NO_GROK_ANCHORS ; global SINGLE_SPACE; global ADD_STOP_ANCHORS; global REMOVE_PARSED_FIELDS; global REMOVE_ORIG_MSG; global REMOVE_UNNAMED_FIELDS; global TRIM_FIELDS; global RENAME_FIELDS
+	global PARSE_URL; global PARSE_UA; global ENRICH_GEO; global ENRICH_ASN; global HEADERS_ONLY
 
 	# Getting arguments
 	parser = argparse.ArgumentParser(description='Converts Netwitness log parser configuration to Logstash configuration.\n' + \
@@ -86,11 +95,14 @@ def init():
 	parser.add_argument('-i', '--input-file', action='store', default='', help='Absolute path to RSA XML file (automatically uses the related custom XML file as well)')
 	parser.add_argument('-u', '--url', action='store', default='', help='url of RSA XML file')
 	parser.add_argument('-o', '--output-file', action='store', default='', help='Absolute path to Logstash .conf file (default: logstash-[device].conf)')
+	parser.add_argument('-k', '--headers-only', action='store_true', default=False, help='Only parse with the headers section (not the messages) (default: false)')
 	parser.add_argument('-p', '--parse-url', action='store_true', default=False, help='Add a filter block to parse URLs into domain, query, etc (default: false)')
 	parser.add_argument('-q', '--parse-ua', action='store_true', default=False, help='Add a filter block to parse User Agents (default: false)')
 	parser.add_argument('-e', '--enrich-geo', action='store_true', default=False, help='Add a filter block to add geoip lookups on IPs (default: false)')
 	parser.add_argument('-f', '--enrich-asn', action='store_true', default=False, help='Add a filter block to add ASN lookups on IPs (default: false)')
-	parser.add_argument('-x', '--remove-parsed-fields', action='store_true', default=False, help='Remove the event.original and message fields if correctly parsed (default: false)')
+	parser.add_argument('-x', '--remove-parsed-fields', action='store_true', default=False, help='Remove the fields (sub message, date, etc) if correctly parsed (default: false)')
+	parser.add_argument('-y', '--remove-original-msg', action='store_true', default=False, help='Remove the event.original field if correctly parsed (default: false)')
+	parser.add_argument('-z', '--remove-unnamed-fields', action='store_true', default=False, help='Remove the fld* and hfld* fields if correctly parsed (default: false)')
 	parser.add_argument('-r', '--rename-ecs', action='store_true', default=False, help='Renames RSA fields to ECS (default: false)')
 	parser.add_argument('-t', '--trim-fields', action='store_true', default=False, help='Trim (strip left and right spaces) from all string fields (default: false)')
 	parser.add_argument('-n', '--no-grok-anchors', action='store_true', default=False, help='Removing the begining (^) and end ($) anchors in grok (default is to have them)')
@@ -145,29 +157,36 @@ def init():
 	if results.output_file != '':
 		LS_CONF_FILE = Path(results.output_file)
 		(LS_OUTPUT_PATH, LS_OUTPUT_FNAME) = os.path.split(LS_CONF_FILE)
-		ES_MAPPING_FILE = Path(LS_OUTPUT_PATH) / "es-mapping.json"
+		ES_MAPPING_FILE = Path(LS_OUTPUT_PATH) / ("es-mapping-" + DEVICE + ".json")
+		MSG2PARSER_DICT_FILE = Path(LS_OUTPUT_PATH) / ("msgid2parserid-" + DEVICE + ".json")
 		# if same folder, just add it
 		if LS_OUTPUT_PATH == "":
 			LS_CONF_FILE = Path(CURRENT_DIR) / LS_OUTPUT_FNAME
-			ES_MAPPING_FILE = Path(CURRENT_DIR) / "es-mapping.json"
+			ES_MAPPING_FILE = Path(CURRENT_DIR) / ("es-mapping-" + DEVICE + ".json")
+			MSG2PARSER_DICT_FILE = Path(CURRENT_DIR) / ("msgid2parserid-" + DEVICE + ".json")
 	else:
 		if DEVICE_PATH == "":
 			LS_CONF_FILE = Path(CURRENT_DIR) / ("logstash-" + DEVICE + ".conf")
-			ES_MAPPING_FILE = Path(CURRENT_DIR) / "es-mapping.json"
+			ES_MAPPING_FILE = Path(CURRENT_DIR) / ("es-mapping-" + DEVICE + ".json")
+			MSG2PARSER_DICT_FILE = Path(CURRENT_DIR) / ("msgid2parserid-" + DEVICE + ".json")
 		else:
 			LS_CONF_FILE = Path(DEVICE_PATH) / ("logstash-" + DEVICE + ".conf")
-			ES_MAPPING_FILE = Path(DEVICE_PATH) / "es-mapping.json"
+			ES_MAPPING_FILE = Path(DEVICE_PATH) / ("es-mapping-" + DEVICE + ".json")
+			MSG2PARSER_DICT_FILE = Path(DEVICE_PATH) / ("msgid2parserid-" + DEVICE + ".json")
 	CHECK_CONF = results.check_config
 	NO_GROK_ANCHORS = results.no_grok_anchors
 	SINGLE_SPACE = results.single_space_match
 	ADD_STOP_ANCHORS = results.add_stop_anchors
 	REMOVE_PARSED_FIELDS = results.remove_parsed_fields
+	REMOVE_ORIG_MSG = results.remove_original_msg
+	REMOVE_UNNAMED_FIELDS = results.remove_unnamed_fields
 	TRIM_FIELDS = results.trim_fields
 	RENAME_FIELDS = results.rename_ecs
 	PARSE_URL = results.parse_url
 	PARSE_UA = results.parse_ua
 	ENRICH_GEO = results.enrich_geo
 	ENRICH_ASN = results.enrich_asn
+	HEADERS_ONLY = results.headers_only
 	# custom logstash executable path
 	if results.logstash_path != '':
 		LS_EXEC = Path(results.logstash_path)
