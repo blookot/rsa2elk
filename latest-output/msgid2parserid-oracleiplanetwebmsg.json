@@ -1,0 +1,13 @@
+{
+    "GET": "msgParserId0",
+    "POST": "msgParserId0",
+    "info": "info",
+    "warning": "warning",
+    "failure": "failure",
+    "config": "config",
+    "security": "msgParserId1",
+    "format": "msgParserId4",
+    "fine": "msgParserId2",
+    "HEAD": "msgParserId5",
+    "-": "msgParserId6"
+}

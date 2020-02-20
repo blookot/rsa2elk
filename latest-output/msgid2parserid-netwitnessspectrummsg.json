@@ -1,0 +1,11 @@
+{
+    "Added_User": "msgParserId0",
+    "Added_Role": "msgParserId1",
+    "Modification_User": "msgParserId2",
+    "Modification": "msgParserId3",
+    "Authentication": "Authentication",
+    "Enabled_User": "msgParserId6",
+    "Disabled_User": "msgParserId7",
+    "Unlocked_User": "msgParserId8",
+    "Suspicious_Event": "msgParserId9"
+}

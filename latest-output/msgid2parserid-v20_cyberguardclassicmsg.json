@@ -1,0 +1,16 @@
+{
+    "1": "1",
+    "2": "msgParserId2",
+    "3": "msgParserId3",
+    "4": "4",
+    "5": "5",
+    "all_packets": "msgParserId31",
+    "permit": "msgParserId32",
+    "deny": "msgParserId33",
+    "clasd": "msgParserId34",
+    "logins": "logins",
+    "firewall": "msgParserId37",
+    "interface_spoof": "msgParserId38",
+    "port_scan": "msgParserId39",
+    "ssh": "ssh"
+}

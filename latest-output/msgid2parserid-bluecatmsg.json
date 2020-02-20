@@ -1,0 +1,5 @@
+{
+    "DHCP_Message": "msgParserId0",
+    "DNS_Query": "msgParserId1",
+    "DNS_Update": "msgParserId2"
+}

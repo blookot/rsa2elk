@@ -1,0 +1,20 @@
+{
+    "0": "msgParserId0",
+    "1": "msgParserId1",
+    "2": "msgParserId2",
+    "4": "msgParserId3",
+    "13": "msgParserId4",
+    "6": "msgParserId5",
+    "8": "msgParserId6",
+    "7": "msgParserId7",
+    "9": "msgParserId8",
+    "12": "msgParserId9",
+    "P4D": "P4D",
+    "sync": "msgParserId17",
+    "print": "msgParserId17",
+    "annotate": "msgParserId17",
+    "revert": "msgParserId17",
+    "diff": "msgParserId17",
+    "integrate": "msgParserId17",
+    "resolve": "msgParserId17"
+}

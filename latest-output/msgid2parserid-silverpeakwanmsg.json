@@ -1,0 +1,8 @@
+{
+    "action": "action",
+    "modify": "msgParserId2",
+    "delete": "msgParserId3",
+    "create": "msgParserId4",
+    "mgmtd": "mgmtd",
+    "pm": "pm"
+}

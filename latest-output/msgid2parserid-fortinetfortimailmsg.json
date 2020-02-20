@@ -1,0 +1,15 @@
+{
+    "event_admin": "msgParserId0",
+    "event_pop3": "msgParserId1",
+    "event_webmail": "msgParserId1",
+    "event_system": "msgParserId1",
+    "event_imap": "msgParserId1",
+    "event_smtp": "event_smtp",
+    "event_update": "msgParserId15",
+    "event_config": "msgParserId16",
+    "virus": "msgParserId17",
+    "virus_infected": "msgParserId18",
+    "virus_file-signature": "msgParserId19",
+    "statistics": "statistics",
+    "spam": "spam"
+}

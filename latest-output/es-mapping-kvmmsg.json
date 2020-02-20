@@ -1,0 +1,109 @@
+{
+    "index_patterns": "kvm*",
+    "settings": {
+        "number_of_shards": "1",
+        "number_of_replicas": "1",
+        "index.refresh_interval": "5s"
+    },
+    "mappings": {
+        "properties": {
+            "@timestamp": {
+                "type": "date"
+            },
+            "@version": {
+                "type": "keyword"
+            },
+            "geo": {
+                "properties": {
+                    "location": {
+                        "type": "geo_point"
+                    }
+                }
+            },
+            "source": {
+                "properties": {
+                    "geo": {
+                        "properties": {
+                            "location": {
+                                "type": "geo_point"
+                            }
+                        }
+                    }
+                }
+            },
+            "destination": {
+                "properties": {
+                    "geo": {
+                        "properties": {
+                            "location": {
+                                "type": "geo_point"
+                            }
+                        }
+                    }
+                }
+            },
+            "host": {
+                "properties": {
+                    "geo": {
+                        "properties": {
+                            "location": {
+                                "type": "geo_point"
+                            }
+                        }
+                    }
+                }
+            },
+            "observer": {
+                "properties": {
+                    "geo": {
+                        "properties": {
+                            "location": {
+                                "type": "geo_point"
+                            }
+                        }
+                    }
+                }
+            },
+            "event": {
+                "properties": {
+                    "id": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "rsa": {
+                "properties": {
+                    "header": {
+                        "properties": {
+                            "id": {
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "message": {
+                        "properties": {
+                            "id1": {
+                                "type": "keyword"
+                            },
+                            "id2": {
+                                "type": "keyword"
+                            }
+                        }
+                    }
+                }
+            },
+            "action": {
+                "type": "keyword"
+            },
+            "hostip": {
+                "type": "ip"
+            },
+            "saddr": {
+                "type": "ip"
+            },
+            "version": {
+                "type": "keyword"
+            }
+        }
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "TaskComplete": "msgParserId0",
+    "NewHost": "msgParserId1",
+    "PropertyChanged": "PropertyChanged",
+    "ObjectRemoved": "msgParserId4",
+    "NewObject": "msgParserId5",
+    "ID": "ID"
+}

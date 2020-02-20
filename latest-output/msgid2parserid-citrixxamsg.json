@@ -1,0 +1,11 @@
+{
+    "CONFIGINFO": "msgParserId0",
+    "SESSIONINFO": "msgParserId1",
+    "APPINFO": "msgParserId2",
+    "Broker_SDK": "msgParserId3",
+    "ConfigurationLogging": "msgParserId3",
+    "Monitor": "msgParserId3",
+    "Analytics": "msgParserId3",
+    "Storefront": "msgParserId3",
+    "Configuration": "msgParserId3"
+}

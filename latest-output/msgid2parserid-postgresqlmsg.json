@@ -1,0 +1,9 @@
+{
+    "idle": "idle",
+    "authentication": "authentication",
+    "SELECT": "SELECT",
+    "UPDATE": "msgParserId8",
+    "INSERT": "msgParserId8",
+    "SHOW": "SHOW",
+    "postgres": "postgres"
+}

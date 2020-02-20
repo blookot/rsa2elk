@@ -1,0 +1,20 @@
+{
+    "firepass": "firepass",
+    "GarbageCollection": "GarbageCollection",
+    "maintenance": "maintenance",
+    "NetworkAccess": "NetworkAccess",
+    "security": "security",
+    "httpd": "msgParserId39",
+    "Miscellaneous": "Miscellaneous",
+    "kernel": "kernel",
+    "sshd": "msgParserId52",
+    "ntpd": "ntpd",
+    "AppTunnel": "AppTunnel",
+    "run-crons": "msgParserId63",
+    "/USR/SBIN/CRON": "msgParserId64",
+    "ntpdate": "msgParserId65",
+    "heartbeat": "msgParserId66",
+    "mailer": "msgParserId67",
+    "EndpointSecurity": "EndpointSecurity",
+    "snmp": "snmp"
+}

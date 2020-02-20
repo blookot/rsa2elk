@@ -1,0 +1,6 @@
+{
+    "SecurityAlert": "SecurityAlert",
+    "InformationalAlert": "InformationalAlert",
+    "PenetrationTest": "msgParserId4",
+    "Audit": "msgParserId4"
+}

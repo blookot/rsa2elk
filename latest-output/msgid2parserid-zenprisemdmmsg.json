@@ -1,0 +1,11 @@
+{
+    "allow": "msgParserId0",
+    "deny": "msgParserId0",
+    "INFO": "INFO",
+    "DEBUG": "DEBUG",
+    "WARN": "WARN",
+    "ERROR": "ERROR",
+    "TRACE": "msgParserId15",
+    "xenmobile": "xenmobile",
+    "Audit": "Audit"
+}

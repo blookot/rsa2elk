@@ -1,0 +1,20 @@
+{
+    "Update_Successful": "msgParserId0",
+    "Scan_Successful": "msgParserId0",
+    "ScheduledScan_Status": "msgParserId1",
+    "ScheduledUpdate_Status": "msgParserId0",
+    "Virus_Detected": "msgParserId2",
+    "Attachment_Blocked": "msgParserId3",
+    "Content_Violation": "msgParserId4",
+    "Update_Needed": "msgParserId0",
+    "Scan_TimeLimit_Exceeded": "msgParserId0",
+    "Database_SizeLimit_Exceeded": "msgParserId0",
+    "Suspicious_URL": "msgParserId5",
+    "Virus_Outbreak": "Virus_Outbreak",
+    "Virus_Uncleanable": "Virus_Uncleanable",
+    "AttachmentBlocked_Outbreak": "AttachmentBlocked_Outbreak",
+    "Mailstore_SizeLimit_Exceeded": "msgParserId0",
+    "Update_Unsuccessful": "msgParserId0",
+    "Scan_Unsuccessful": "msgParserId0",
+    "714": "msgParserId12"
+}

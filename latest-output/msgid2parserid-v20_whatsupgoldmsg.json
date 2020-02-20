@@ -1,0 +1,17 @@
+{
+    "Login": "Login",
+    "Credentials": "Credentials",
+    "Action": "Action",
+    "Workspace": "Workspace",
+    "Performance_Monitor": "Performance_Monitor",
+    "Active_Monitor": "Active_Monitor",
+    "Passive_Monitor": "Passive_Monitor",
+    "Recurring_Action": "Recurring_Action",
+    "Action_Policy": "Action_Policy",
+    "User": "User",
+    "Devices": "Devices",
+    "Device_Properties": "msgParserId31",
+    "System": "msgParserId32",
+    "Up": "msgParserId33",
+    "Down": "msgParserId34"
+}

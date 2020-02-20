@@ -1,0 +1,18 @@
+{
+    "GET": "GET",
+    "POST": "POST",
+    "OPTIONS": "OPTIONS",
+    "Unknown": "msgParserId42",
+    "TRACE": "TRACE",
+    "PUT": "PUT",
+    "SEARCH": "msgParserId43",
+    "PROPFIND": "PROPFIND",
+    "MKCOL": "msgParserId43",
+    "HEAD": "HEAD",
+    "RPC_OUT_DATA": "msgParserId43",
+    "attack": "attack",
+    "non_cef_blocked": "msgParserId59",
+    "non_cef_alerted": "msgParserId60",
+    "non_cef_passed": "msgParserId61",
+    "BIGIPASM_GENERIC": "msgParserId62"
+}

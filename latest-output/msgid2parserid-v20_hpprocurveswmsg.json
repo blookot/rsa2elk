@@ -1,0 +1,15 @@
+{
+    "auth": "msgParserId0",
+    "FFI": "FFI",
+    "ip": "msgParserId7",
+    "lacp": "msgParserId8",
+    "mgr": "mgr",
+    "ports": "ports",
+    "snmp": "msgParserId16",
+    "SNTP": "SNTP",
+    "tftp": "msgParserId19",
+    "vlan": "vlan",
+    "ssh": "msgParserId23",
+    "SHELL": "msgParserId24",
+    "DRVDBG": "msgParserId25"
+}

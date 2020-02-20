@@ -1,0 +1,17 @@
+{
+    "Administration": "Administration",
+    "Heat_Chart": "Heat_Chart",
+    "Memory_Usage": "Memory_Usage",
+    "Performance": "Performance",
+    "Replication": "Replication",
+    "Schema": "Schema",
+    "Security": "Security",
+    "Upgrade": "Upgrade",
+    "Backup": "msgParserId25",
+    "Availability": "Availability",
+    "Monitoring_and_Support_Services": "Monitoring_and_Support_Services",
+    "Operating_System": "msgParserId111",
+    "Query_Analysis": "Query_Analysis",
+    "Agent": "msgParserId114",
+    "Rule_Category": "msgParserId25"
+}

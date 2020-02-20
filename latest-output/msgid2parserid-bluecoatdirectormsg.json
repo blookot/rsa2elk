@@ -1,0 +1,23 @@
+{
+    "cli": "cli",
+    "schedulerd": "schedulerd",
+    "configd": "configd",
+    "poller": "msgParserId44",
+    "heartbeat": "heartbeat",
+    "runner": "runner",
+    "ccd": "ccd",
+    "sshd": "sshd",
+    "dmd": "dmd",
+    "logrotate": "msgParserId75",
+    "ntpd": "ntpd",
+    "pm": "pm",
+    "anacron": "anacron",
+    "epmd": "epmd",
+    "xinetd": "xinetd",
+    "auditd": "msgParserId95",
+    "restorecond": "msgParserId96",
+    "authd": "authd",
+    "rsyslogd": "msgParserId100",
+    "shutdown": "msgParserId101",
+    "cmd": "msgParserId102"
+}

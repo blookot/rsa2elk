@@ -1,0 +1,5 @@
+{
+    "Pass": "msgParserId0",
+    "Fail": "msgParserId1",
+    "Other": "msgParserId2"
+}

@@ -1,0 +1,18 @@
+{
+    "AdminAuth": "AdminAuth",
+    "AdminLogout": "msgParserId3",
+    "AdminChange": "AdminChange",
+    "AuthLogout": "AuthLogout",
+    "AdminReject": "msgParserId8",
+    "ManagementCommand": "ManagementCommand",
+    "AdminLogin": "msgParserId11",
+    "AuthAccept": "AuthAccept",
+    "AzAccept": "AzAccept",
+    "AzReject": "AzReject",
+    "AuthReject": "AuthReject",
+    "ValidateReject": "ValidateReject",
+    "ValidateAccept": "ValidateAccept",
+    "AuthAttempt": "AuthAttempt",
+    "ERROR": "msgParserId29",
+    "INFO": "msgParserId29"
+}

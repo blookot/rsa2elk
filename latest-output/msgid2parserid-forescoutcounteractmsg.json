@@ -1,0 +1,14 @@
+{
+    "NAC_LOG": "NAC_LOG",
+    "NAC_Policy_Log": "NAC_Policy_Log",
+    "System_statistics": "msgParserId19",
+    "Application_status": "msgParserId20",
+    "Uptime": "msgParserId21",
+    "Log": "Log",
+    "Port": "msgParserId40",
+    "Scan": "msgParserId41",
+    "Manual": "msgParserId42",
+    "User": "msgParserId43",
+    "Windows": "msgParserId44",
+    "Block_Event": "msgParserId45"
+}

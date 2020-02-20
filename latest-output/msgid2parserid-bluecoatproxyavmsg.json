@@ -1,0 +1,18 @@
+{
+    "Virus": "msgParserId0",
+    "antivirus_load_failure": "antivirus_load_failure",
+    "max_file_size_exceeded": "msgParserId2",
+    "decode_error": "msgParserId2",
+    "password_protected": "msgParserId2",
+    "antivirus_license_expired": "msgParserId2",
+    "AV_Scanner": "msgParserId3",
+    "AV_Rebooted": "msgParserId4",
+    "AV_LicenseUpdated": "msgParserId5",
+    "ICAP": "msgParserId6",
+    "User": "User",
+    "HTTPS": "msgParserId9",
+    "File_Retrieval": "msgParserId6",
+    "SNTPClient": "msgParserId9",
+    "File": "File",
+    "Antivirus": "msgParserId12"
+}

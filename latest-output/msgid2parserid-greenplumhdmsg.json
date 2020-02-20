@@ -1,0 +1,11 @@
+{
+    "open": "msgParserId0",
+    "create": "msgParserId0",
+    "delete": "msgParserId0",
+    "rename": "msgParserId0",
+    "mkdirs": "msgParserId0",
+    "listStatus": "msgParserId0",
+    "setReplication": "msgParserId0",
+    "setOwner": "msgParserId0",
+    "setPermission": "msgParserId0"
+}

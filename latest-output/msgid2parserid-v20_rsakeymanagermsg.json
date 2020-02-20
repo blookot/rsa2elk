@@ -1,0 +1,17 @@
+{
+    "RKMA_MONITORING_EVENT": "msgParserId0",
+    "VIEW_MONITORING_EVENT": "msgParserId1",
+    "DefaultSecurityProviders": "msgParserId2",
+    "DefaultProviderEnforcer": "msgParserId3",
+    "DefaultRandomAssembler": "msgParserId4",
+    "DefaultSecretKeyAssembler": "DefaultSecretKeyAssembler",
+    "LoginAction": "LoginAction",
+    "AuthenticationServletFilter": "msgParserId9",
+    "LogKeyClassNatural": "msgParserId10",
+    "DefaultKeyClassNatural": "msgParserId11",
+    "AuditSimple": "AuditSimple",
+    "LogoutAction": "msgParserId24",
+    "DefaultAuditStatements": "DefaultAuditStatements",
+    "TransactionLayer": "msgParserId28",
+    "DefaultUpgradeService": "msgParserId29"
+}

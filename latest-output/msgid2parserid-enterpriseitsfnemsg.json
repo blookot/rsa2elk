@@ -1,0 +1,12 @@
+{
+    "RACF": "RACF",
+    "DB2": "msgParserId2",
+    "SYSLOG": "msgParserId3",
+    "ACCOUNT": "msgParserId4",
+    "SYSCMD": "msgParserId5",
+    "UNIXFILE": "msgParserId6",
+    "FILE_PO": "msgParserId7",
+    "DSDELETE": "msgParserId8",
+    "CATDEL": "msgParserId9",
+    "PRODUSE": "msgParserId10"
+}

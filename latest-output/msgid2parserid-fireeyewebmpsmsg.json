@@ -1,0 +1,10 @@
+{
+    "domain-match": "msgParserId0",
+    "infection-match": "msgParserId1",
+    "malware-callback": "msgParserId0",
+    "malware-object": "msgParserId0",
+    "web-infection": "msgParserId2",
+    "Web_MPS": "msgParserId3",
+    "riskware-object": "msgParserId4",
+    "riskware-callback": "msgParserId4"
+}
