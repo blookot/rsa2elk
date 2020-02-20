@@ -1,0 +1,12 @@
+{
+    "LOGIN": "msgParserId0",
+    "Login": "msgParserId1",
+    "LOGOUT": "msgParserId2",
+    "Logout": "msgParserId3",
+    "Add": "msgParserId4",
+    "Remove": "msgParserId4",
+    "SYSTEM_SETTING": "msgParserId5",
+    "SECURITY_SETTINGS": "msgParserId5",
+    "AUTH_SOURCE": "msgParserId6",
+    "KEEP_ALIVE": "msgParserId5"
+}

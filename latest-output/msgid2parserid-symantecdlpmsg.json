@@ -1,0 +1,8 @@
+{
+    "Incident": "Incident",
+    "INCIDENT_GENERIC": "msgParserId5",
+    "System_Event": "msgParserId6",
+    "Tablespace_is_almost_full": "msgParserId7",
+    "Incident_queue_backlogged": "msgParserId8",
+    "No_Traffic_Captured": "msgParserId9"
+}

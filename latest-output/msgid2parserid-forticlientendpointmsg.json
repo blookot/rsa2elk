@@ -1,0 +1,9 @@
+{
+    "enter": "msgParserId0",
+    "repeated": "msgParserId1",
+    "ms-wbt-server": "msgParserId2",
+    "http": "msgParserId2",
+    "https": "msgParserId2",
+    "smtp": "msgParserId2",
+    "pop3": "msgParserId2"
+}

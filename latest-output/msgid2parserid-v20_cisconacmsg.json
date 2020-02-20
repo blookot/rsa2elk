@@ -1,0 +1,12 @@
+{
+    "Administration": "Administration",
+    "SSL_Communication": "SSL_Communication",
+    "Authentication": "Authentication",
+    "Miscellaneous": "Miscellaneous",
+    "CleanAccessServer": "CleanAccessServer",
+    "SW_Management": "SW_Management",
+    "CleanAccess": "CleanAccess",
+    "Client": "msgParserId65",
+    "NGS_ADMIN": "NGS_ADMIN",
+    "NGS_SPONSOR": "NGS_SPONSOR"
+}

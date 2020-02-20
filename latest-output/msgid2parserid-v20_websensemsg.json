@@ -1,0 +1,13 @@
+{
+    "Permitted": "msgParserId0",
+    "permitted": "permitted",
+    "Blocked": "msgParserId0",
+    "blocked": "blocked",
+    "Alert": "Alert",
+    "BLOCK": "msgParserId16",
+    "Error": "msgParserId17",
+    "Information": "Information",
+    "PERMIT": "msgParserId23",
+    "Warning": "Warning",
+    "WEBSENSE_GENERIC": "msgParserId35"
+}

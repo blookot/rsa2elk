@@ -1,0 +1,14 @@
+{
+    "SNMP": "SNMP",
+    "CLI": "CLI",
+    "System": "System",
+    "FlowLimt": "FlowLimt",
+    "AddrNtfy": "AddrNtfy",
+    "AAA": "AAA",
+    "LACP": "msgParserId50",
+    "RtrAcl": "RtrAcl",
+    "RtrFe": "RtrFe",
+    "Router": "Router",
+    "RtrArpProc": "msgParserId59",
+    "UPN": "UPN"
+}

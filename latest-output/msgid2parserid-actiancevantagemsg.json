@@ -1,0 +1,16 @@
+{
+    "Alert": "msgParserId0",
+    "Allowed": "msgParserId0",
+    "Blocked": "msgParserId0",
+    "Coach-Allowed": "msgParserId0",
+    "Coach-Blocked": "msgParserId0",
+    "Coached": "msgParserId0",
+    "License-Allowed": "msgParserId0",
+    "License-Blocked": "msgParserId0",
+    "Log": "msgParserId0",
+    "Quota-Limited": "msgParserId0",
+    "Unknown": "msgParserId0",
+    "ADMIN": "ADMIN",
+    "AUTH": "AUTH",
+    "CONFIG": "CONFIG"
+}

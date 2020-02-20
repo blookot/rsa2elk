@@ -1,0 +1,16 @@
+{
+    "Audit": "Audit",
+    "Batch": "Batch",
+    "DECnet": "msgParserId4",
+    "Detached": "Detached",
+    "Identifier": "Identifier",
+    "Local": "Local",
+    "Network": "Network",
+    "Object": "Object",
+    "Privilege": "msgParserId34",
+    "Remote": "Remote",
+    "Security": "msgParserId42",
+    "Server": "Server",
+    "Subprocess": "Subprocess",
+    "System": "System"
+}

@@ -1,0 +1,21 @@
+{
+    "vpn_sessiond": "vpn_sessiond",
+    "controller": "controller",
+    "server": "server",
+    "Admin": "Admin",
+    "Uptime": "msgParserId54",
+    "System": "msgParserId55",
+    "Total": "Total",
+    "Used": "Used",
+    "Free": "msgParserId60",
+    "Disabled": "msgParserId61",
+    "Full": "msgParserId62",
+    "Kiosk": "msgParserId63",
+    "Failed": "msgParserId64",
+    "GET": "msgParserId65",
+    "POST": "msgParserId65",
+    "Login": "Login",
+    "Logout": "msgParserId68",
+    "STA-Validation": "msgParserId69",
+    "SG-Traffic": "msgParserId70"
+}

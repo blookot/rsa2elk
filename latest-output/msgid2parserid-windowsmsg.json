@@ -1,0 +1,9 @@
+{
+    "Security": "msgParserId0",
+    "Application": "msgParserId1",
+    "System": "System",
+    "Setup": "msgParserId4",
+    "ForwardedEvents": "msgParserId5",
+    "AgentTest": "msgParserId6",
+    "WINDOWS_GENERIC": "msgParserId7"
+}

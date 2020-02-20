@@ -1,0 +1,19 @@
+{
+    "ACCESS": "msgParserId0",
+    "CLOSE": "msgParserId1",
+    "connect": "msgParserId2",
+    "DELETE": "msgParserId3",
+    "FILESHARE": "msgParserId4",
+    "LOGON": "LOGON",
+    "LOGOFF": "msgParserId7",
+    "last": "msgParserId8",
+    "logfile": "msgParserId9",
+    "OPEN": "OPEN",
+    "RENAME": "msgParserId14",
+    "user": "msgParserId15",
+    "users:": "msgParserId16",
+    "users/delete": "users/delete",
+    "users/modify": "users/modify",
+    "audit_config": "msgParserId21",
+    "audit_protocol": "audit_protocol"
+}

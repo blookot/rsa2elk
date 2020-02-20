@@ -1,0 +1,13 @@
+{
+    "Tx_Encrypting": "msgParserId0",
+    "Tx_Sending": "Tx_Sending",
+    "Tx_Pending": "Tx_Pending",
+    "Tx_Sent": "Tx_Sent",
+    "Tx_Delivered": "msgParserId4",
+    "Tx_Error": "Tx_Error",
+    "Rx_Received": "Rx_Received",
+    "Outgoing": "msgParserId12",
+    "Incoming-Completed": "msgParserId13",
+    "Incoming-Missed_Call-Unopened": "msgParserId14",
+    "Incoming-Missed_Call-Opened": "msgParserId15"
+}

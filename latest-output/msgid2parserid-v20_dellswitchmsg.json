@@ -1,0 +1,16 @@
+{
+    "AAA_AUTHFAIL": "msgParserId0",
+    "COPY_TRAP": "COPY_TRAP",
+    "INIT_Startup": "msgParserId3",
+    "LINK_Up": "msgParserId4",
+    "LINK_Down": "msgParserId5",
+    "MSCM_NEWTERM": "msgParserId6",
+    "MSCM_TERMTERMINATED": "msgParserId7",
+    "STP_PORTSTATUS": "msgParserId8",
+    "TFTP_TftpRxERROR": "msgParserId9",
+    "TRAPMGR": "TRAPMGR",
+    "UNKN": "msgParserId12",
+    "USER_MGR": "msgParserId13",
+    "CLI_WEB": "CLI_WEB",
+    "DNS_CLIEN": "msgParserId12"
+}

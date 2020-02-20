@@ -1,0 +1,22 @@
+{
+    "SYSTEM_BACKUP": "msgParserId0",
+    "SYSTEM_BOOTSTRAP": "msgParserId1",
+    "SYSTEM_CONFIG_FIREWALL": "msgParserId2",
+    "SYSTEM_CONFIG_HOST": "msgParserId3",
+    "SYSTEM_CONFIG_ROUTE": "msgParserId4",
+    "SYSTEM_CONFIG_UPDATE": "msgParserId1",
+    "SYSTEM_ERROR": "msgParserId5",
+    "SYSTEM_REBOOT": "msgParserId1",
+    "SYSTEM_STARTUP": "msgParserId6",
+    "USER_LOGIN": "msgParserId7",
+    "USER_LOGOUT": "msgParserId8",
+    "USER_AUTHZ": "msgParserId9",
+    "USER_PROTECTED_APP_AUTHN": "msgParserId10",
+    "USER_EDIT_KEYCHAIN": "msgParserId11",
+    "USER_REQUEST_AUTHZ": "msgParserId12",
+    "USER_STEPUP_AUTHN": "msgParserId13",
+    "WEB_SERVICES_CREATE": "msgParserId14",
+    "WEB_SERVICES_DELETE": "msgParserId14",
+    "WEB_SERVICES_EDIT": "msgParserId14",
+    "WEB_SERVICES_PARTIALEDIT": "msgParserId14"
+}

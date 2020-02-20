@@ -1,0 +1,7 @@
+{
+    "Command": "msgParserId0",
+    "SQL": "msgParserId0",
+    "PERIM_AUTH_SUCCESS": "msgParserId1",
+    "PERIM_AUTH_FAILURE": "msgParserId2",
+    "BLOCKED": "msgParserId3"
+}

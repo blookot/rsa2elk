@@ -1,0 +1,18 @@
+{
+    "savegrp": "msgParserId0",
+    "nsrexecd": "msgParserId0",
+    "nsrd": "msgParserId0",
+    "nsrmmdbd": "msgParserId0",
+    "nsrjobd": "msgParserId0",
+    "nsrindexd": "msgParserId0",
+    "nsrck": "msgParserId0",
+    "server": "msgParserId1",
+    "index": "index",
+    "registration": "msgParserId5",
+    "media": "media",
+    "savegroup": "savegroup",
+    "saveset": "msgParserId20",
+    "*": "*",
+    "winworkr": "winworkr",
+    "4": "4"
+}

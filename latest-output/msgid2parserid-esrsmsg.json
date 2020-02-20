@@ -1,0 +1,11 @@
+{
+    "User": "User",
+    "Remote": "Remote",
+    "Device": "msgParserId7",
+    "Processed": "msgParserId8",
+    "Pending": "msgParserId9",
+    "Set": "msgParserId10",
+    "Modified": "Modified",
+    "Role": "Role",
+    "Profile": "Profile"
+}

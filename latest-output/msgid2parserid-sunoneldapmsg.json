@@ -1,0 +1,15 @@
+{
+    "modify": "modify",
+    "add": "add",
+    "delete": "delete",
+    "modrdn": "modrdn",
+    "RESULT": "msgParserId5",
+    "EXT": "msgParserId6",
+    "MOD": "msgParserId7",
+    "SRCH": "msgParserId8",
+    "BIND": "msgParserId9",
+    "ABANDON": "msgParserId10",
+    "ADD": "msgParserId11",
+    "MODRDN": "msgParserId12",
+    "Oracle_DS": "Oracle_DS"
+}

@@ -1,0 +1,19 @@
+{
+    "Stack": "msgParserId0",
+    "DOT1X": "msgParserId1",
+    "Interface": "msgParserId2",
+    "L4_server": "L4_server",
+    "list_10": "msgParserId8",
+    "running-config": "msgParserId9",
+    "Security": "Security",
+    "SNMP": "msgParserId21",
+    "startup-config": "msgParserId22",
+    "STP": "STP",
+    "System": "System",
+    "Warning": "msgParserId34",
+    "Web_access_rejected": "msgParserId35",
+    "raslogd": "raslogd",
+    "NTP": "NTP",
+    "PORT": "PORT",
+    "VLAN": "msgParserId49"
+}

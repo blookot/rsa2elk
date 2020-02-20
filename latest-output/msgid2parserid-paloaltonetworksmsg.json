@@ -1,0 +1,9 @@
+{
+    "CONFIG": "CONFIG",
+    "SYSTEM": "SYSTEM",
+    "CORRELATION": "msgParserId104",
+    "THREAT": "THREAT",
+    "TRAFFIC": "TRAFFIC",
+    "HIPMATCH": "HIPMATCH",
+    "USERID": "msgParserId135"
+}

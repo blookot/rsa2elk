@@ -1,0 +1,17 @@
+{
+    "createAuthnRequest": "createAuthnRequest",
+    "processAuthnRequest_In": "processAuthnRequest_In",
+    "processAuthnRequest_Out": "processAuthnRequest_Out",
+    "processResponse": "processResponse",
+    "federation_consent_notice_given": "federation_consent_notice_given",
+    "federation_consent_given": "federation_consent_given",
+    "federation_consent_denied": "federation_consent_denied",
+    "initiateLogout": "initiateLogout",
+    "processLogoutRequest_In": "processLogoutRequest_In",
+    "processLogoutRequest_Out": "processLogoutRequest_Out",
+    "processLogoutResponse": "processLogoutResponse",
+    "initiateNameIDManagement": "initiateNameIDManagement",
+    "processManageNameIDRequest_In": "processManageNameIDRequest_In",
+    "processManageNameIDRequest_Out": "processManageNameIDRequest_Out",
+    "processManageNameIDResponse": "processManageNameIDResponse"
+}

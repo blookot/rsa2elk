@@ -1,0 +1,20 @@
+{
+    "GET": "GET",
+    "HEAD": "HEAD",
+    "POST": "POST",
+    "PUT": "PUT",
+    "DELETE": "DELETE",
+    "TRACE": "TRACE",
+    "OPTIONS": "OPTIONS",
+    "CONNECT": "CONNECT",
+    "ICP_QUERY": "ICP_QUERY",
+    "PURGE": "PURGE",
+    "PROPFIND": "PROPFIND",
+    "PROPATCH": "PROPATCH",
+    "MKOL": "MKOL",
+    "COPY": "COPY",
+    "MOVE": "MOVE",
+    "LOCK": "LOCK",
+    "UNLOCK": "UNLOCK",
+    "NONE": "NONE"
+}

@@ -1,0 +1,17 @@
+{
+    "ConfigChange": "ConfigChange",
+    "ConfigError": "msgParserId8",
+    "ConfigWarning": "msgParserId9",
+    "Login": "Login",
+    "admin": "msgParserId13",
+    "Ingrian_System": "msgParserId14",
+    "Version": "msgParserId15",
+    "Auth": "msgParserId15",
+    "KeyGen": "msgParserId15",
+    "KeyInfo": "msgParserId15",
+    "KeyDel": "msgParserId15",
+    "Crypto": "msgParserId15",
+    "KeyLocate": "msgParserId15",
+    "KeyNames": "msgParserId15",
+    "Ingrian_Activity": "msgParserId16"
+}

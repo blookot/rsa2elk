@@ -1,0 +1,15 @@
+{
+    "gateway_adjust_time": "gateway_adjust_time",
+    "XML_DELETE": "msgParserId3",
+    "XML_SAVE": "XML_SAVE",
+    "SSHD_IGNORED": "msgParserId6",
+    "SYSLOG_DUP": "msgParserId7",
+    "IDS_ALERT": "IDS_ALERT",
+    "ROGUE_AP_ALERT": "msgParserId10",
+    "AUTHORIZATION-SUCCESS": "msgParserId11",
+    "ASSOCIATION-SUCCESS": "msgParserId12",
+    "AUTHENTICATION-SUCCESS": "msgParserId13",
+    "Configuration": "Configuration",
+    "User": "User",
+    "INFO": "INFO"
+}

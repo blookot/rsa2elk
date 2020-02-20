@@ -1,0 +1,16 @@
+{
+    "Authentication": "Authentication",
+    "ACIManagement": "msgParserId2",
+    "EntitlementWorkflowManagement": "msgParserId3",
+    "PolicyManagement": "PolicyManagement",
+    "PersonManagement": "PersonManagement",
+    "OrgRoleManagement": "OrgRoleManagement",
+    "ContainerManagement": "ContainerManagement",
+    "RuntimeEvent": "msgParserId6",
+    "SelfPasswordChange": "msgParserId9",
+    "ServiceManagement": "msgParserId3",
+    "Reconciliation": "msgParserId10",
+    "AccountManagement": "AccountManagement",
+    "RequestCancellation": "msgParserId6",
+    "ServicePolicyEnforcement": "msgParserId6"
+}

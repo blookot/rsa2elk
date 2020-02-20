@@ -1,0 +1,15 @@
+{
+    "Varonis-Alert": "Varonis-Alert",
+    "Varonis-Test": "msgParserId3",
+    "OPEN": "msgParserId4",
+    "CREATE": "msgParserId4",
+    "RENAME": "msgParserId4",
+    "DELETE": "msgParserId4",
+    "DELETE_DIR": "msgParserId4",
+    "RENAME_DIR": "msgParserId4",
+    "CREATE_DIR": "msgParserId4",
+    "SETSEC": "msgParserId4",
+    "SETSEC_DIR": "msgParserId4",
+    "SET_ROLE": "msgParserId4",
+    "MODIFY": "msgParserId4"
+}

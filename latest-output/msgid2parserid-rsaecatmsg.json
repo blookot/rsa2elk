@@ -1,0 +1,7 @@
+{
+    "MachineSuspectLevelChanged": "msgParserId0",
+    "MachineIOC": "msgParserId1",
+    "ModuleIOC": "msgParserId2",
+    "IPIOC": "msgParserId3",
+    "SuspiciousEventIOC": "msgParserId4"
+}

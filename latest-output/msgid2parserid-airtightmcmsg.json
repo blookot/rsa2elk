@@ -1,0 +1,21 @@
+{
+    "High": "High",
+    "Authorized": "Authorized",
+    "Large": "msgParserId8",
+    "Unauthorized": "Unauthorized",
+    "Indeterminate": "msgParserId11",
+    "User": "User",
+    "WLAN": "msgParserId13",
+    "Login": "Login",
+    "Syslog": "msgParserId15",
+    "Policy": "msgParserId16",
+    "Scheduled": "msgParserId17",
+    "Spoofing": "msgParserId19",
+    "[Rogue]": "[Rogue]",
+    "[Authorized]": "msgParserId23",
+    "Location": "msgParserId24",
+    "CEF": "msgParserId25",
+    "sensord": "msgParserId26",
+    "config": "config",
+    "dropbear": "dropbear"
+}

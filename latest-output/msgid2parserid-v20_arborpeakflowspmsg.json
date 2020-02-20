@@ -1,0 +1,22 @@
+{
+    "Flow": "Flow",
+    "BGP": "BGP",
+    "Device": "Device",
+    "Hardware": "Hardware",
+    "SNMP": "SNMP",
+    "configuration": "msgParserId13",
+    "Autoclassification": "msgParserId14",
+    "GRE": "GRE",
+    "mitigation": "mitigation",
+    "TMS": "TMS",
+    "usage_alert": "usage_alert",
+    "Test": "msgParserId35",
+    "script": "msgParserId36",
+    "anomaly": "anomaly",
+    "Peakflow": "Peakflow",
+    "Host": "Host",
+    "Infrastructure": "Infrastructure",
+    "Blocked_Host": "msgParserId50",
+    "Change_Log": "msgParserId51",
+    "Protection_Mode": "msgParserId52"
+}

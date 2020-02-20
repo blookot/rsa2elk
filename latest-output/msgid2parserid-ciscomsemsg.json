@@ -1,0 +1,9 @@
+{
+    "ContainmentTrackEvent": "ContainmentTrackEvent",
+    "UpdateTrackEvent": "UpdateTrackEvent",
+    "AbsenceTrackEvent": "AbsenceTrackEvent",
+    "MovementTrackEvent": "MovementTrackEvent",
+    "ChokepointTrackEvent": "ChokepointTrackEvent",
+    "BatteryLifeTrackEvent": "BatteryLifeTrackEvent",
+    "EmergencyTrackEvent": "EmergencyTrackEvent"
+}

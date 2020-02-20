@@ -1,0 +1,18 @@
+{
+    "server": "msgParserId0",
+    "alarm": "msgParserId1",
+    "connection": "msgParserId2",
+    "monitor": "msgParserId3",
+    "ftp": "msgParserId4",
+    "web": "msgParserId5",
+    "smtp": "msgParserId6",
+    "pop3": "msgParserId7",
+    "filter": "msgParserId8",
+    "plugin": "msgParserId9",
+    "vpn": "msgParserId10",
+    "xvpn": "msgParserId11",
+    "pvm": "msgParserId12",
+    "auth": "msgParserId13",
+    "system": "msgParserId14",
+    "ssl": "msgParserId15"
+}

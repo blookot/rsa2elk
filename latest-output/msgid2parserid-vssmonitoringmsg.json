@@ -1,0 +1,8 @@
+{
+    "CONFIG_CHANGE": "msgParserId0",
+    "LOGON_SUCCESS": "msgParserId1",
+    "LOGOUT": "msgParserId2",
+    "AUTH_FAIL": "msgParserId3",
+    "LINKUP": "msgParserId4",
+    "LINKDOWN": "msgParserId4"
+}

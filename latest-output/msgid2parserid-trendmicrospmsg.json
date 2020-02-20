@@ -1,0 +1,10 @@
+{
+    "This": "msgParserId0",
+    "REALTIME_SCAN_CONFIG_CHANGE": "msgParserId1",
+    "ATTEMPT_CHANGE_WRITE_FILE": "msgParserId2",
+    "VIRUS_MALWARE_DETECTED": "msgParserId3",
+    "SPYWARE_GRAYWARE_DETECTED": "msgParserId4",
+    "SERVICE_LOAD_UNLOAD": "msgParserId5",
+    "VIRUS_OUT_OF_DATE": "msgParserId6",
+    "SPYWARE_OUT_OF_DATE": "msgParserId7"
+}

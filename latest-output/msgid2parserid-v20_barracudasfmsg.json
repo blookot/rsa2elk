@@ -1,0 +1,8 @@
+{
+    "inbound/pass1": "inbound/pass1",
+    "outbound/smtp": "outbound/smtp",
+    "scan": "scan",
+    "web": "web",
+    "notify/smtp": "msgParserId21",
+    "reports": "msgParserId22"
+}

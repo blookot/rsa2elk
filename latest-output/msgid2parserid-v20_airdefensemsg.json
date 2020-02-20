@@ -1,0 +1,11 @@
+{
+    "Rogue_Activity": "Rogue_Activity",
+    "Exploits": "Exploits",
+    "Vulnerabilities": "Vulnerabilities",
+    "System_Health": "System_Health",
+    "Platform_Health": "Platform_Health",
+    "Policy_Compliance": "Policy_Compliance",
+    "Infrastructure": "Infrastructure",
+    "Performance": "Performance",
+    "Reconnaissance": "Reconnaissance"
+}
