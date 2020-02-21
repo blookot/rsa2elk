@@ -172,8 +172,8 @@ def initMapping():
             try:
                 reader = csv.DictReader(csvFile, delimiter=';')
                 for row in reader:
-                    # if field is flagged as "Transient", we don't take it into consideration
-                    if row['ecsName'] != "" and row['flags'] != "Transient":
+                    # TODO: not sure what I should do with the fields marked "Transient"
+                    if row['ecsName'] != "": # and row['flags'] != "Transient":
                         config.ecsField[row['envisionName']] = row['ecsName']
                         config.ecsType[row['envisionName']] = row['ecsType']
             except:

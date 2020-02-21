@@ -15,6 +15,7 @@ from os import path
 import xml.etree.ElementTree as et
 import json
 import base64
+from pathlib import Path
 
 
 def convertFile():
@@ -347,10 +348,7 @@ def convertFile():
 						firstMsg = False					
 					
 				# visual separator after all messages
-				lsFile.write(CR + CR + "################## END OF MESSAGES ##################")
-
-			# end of the filter block
-			lsFile.write(CR + CR + "# End of the filter block" + CR + "}" + CR)
+				lsFile.write(CR + CR + "################## END OF MESSAGES ##################" + CR + CR)
 
 
 			###########################################################################
@@ -372,11 +370,11 @@ def convertFile():
 
 			# enrich using VALUEMAP, see https://www.elastic.co/guide/en/logstash/current/plugins-filters-translate.html
 			if len(config.valueMap) > 0:
-				lsFile.write(CR + "# Enrich events using VALUEMAP" + CR)
+				lsFile.write(CR + t(1) + "# Enrich events using VALUEMAP" + CR)
 			for vm in config.valueMap:
 				# sometimes value maps are not used in messages, so let's check this first!
 				if "fld" in config.valueMap[vm]:
-					lsFile.write("filter {" + CR + t(1) + "translate {" + CR)
+					lsFile.write(t(1) + "translate {" + CR)
 					lsFile.write(t(2) + "field => \"[" + config.valueMap[vm]["fld"] + "]\"" + CR)
 					lsFile.write(t(2) + "destination => \"[" + config.valueMap[vm]["newFld"] + "]\"" + CR)
 					lsFile.write(t(2) + "dictionary => {" + CR)
@@ -385,7 +383,7 @@ def convertFile():
 					lsFile.write(t(2) + "}" + CR)
 					lsFile.write(t(2) + "fallback => \"" + config.valueMap[vm]["default"] + "\"" + CR)
 					lsFile.write(t(2) + "override => true" + CR)
-					lsFile.write(t(1) + "}" + CR + "}" + CR)
+					lsFile.write(t(1) + "}" + CR)
 
 			# parse urls
 			if config.PARSE_URL:
@@ -413,66 +411,68 @@ def convertFile():
 
 			# trim (strip) all text fields
 			if config.TRIM_FIELDS:
-				first = True
-				trimedFields = ""
+				trimedFields = []
 				for varKey in sorted(config.allFields):
 					# jump over the fld* fields
-					if varKey != "" and varKey[:3] != "fld" and varKey[:4] != "hfld" and varKey in config.ecsField:
-						# if field exists in ECS mapping then check if it's string
-						if config.ecsType[varKey] == "string":
-							if first:
-								trimedFields = trimedFields + "\"" + varKey + "\""
-								first = False
+					if varKey != "" and varKey[:3] != "fld" and varKey[:4] != "hfld":
+						# also jump over the h* (when they are deleted)
+						if (not config.REMOVE_UNNAMED_FIELDS) or (config.REMOVE_UNNAMED_FIELDS and (varKey[:1] != "h" or varKey[1:] not in config.allFields)):
+							# if field exists in ECS mapping then check if it's string
+							if varKey in config.ecsField:
+								if config.ecsType[varKey] == "text" or config.ecsType[varKey] == "keyword":
+									trimedFields.append("\"" + varKey + "\"")
 							else:
-								trimedFields = trimedFields + ", \"" + varKey + "\""
-				if trimedFields != "":
-					lsFile.write(CR + "# Trim all text fields" + CR)
-					lsFile.write("filter {" + CR + t(1) + "mutate {" + CR)
-					lsFile.write(t(2) + "strip => [ " + trimedFields + " ]" + CR + t(1) + "}" + CR + "}" + CR)
+								trimedFields.append("\"" + varKey + "\"")
+				if len(trimedFields) > 0:
+					trimedFields.sort()
+					lsFile.write(CR + t(1) + "# Trim all text fields" + CR)
+					lsFile.write(t(1) + "mutate {" + CR)
+					lsFile.write(t(2) + "strip => [ " + ",".join(trimedFields) + " ]" + CR + t(1) + "}" + CR)
 
 			# add the changes of names (ecs) or remove the .
 			lsRenames = ""
 			for varKey in sorted(config.allFields):
 				# jump over the fld* fields
 				if varKey != "" and varKey[:3] != "fld" and varKey[:4] != "hfld":
-					if config.RENAME_FIELDS:
-						if varKey in config.ecsField:
-							# field name exists in ECS mapping file, so change it
-							lsRenames = lsRenames + t(3) + "\"" + varKey + "\" => \"" + removeDots(config.ecsField[varKey]) + "\"" + CR
-						else:
-							# field name doesn't exist, rename it with general category "custom."
-							lsRenames = lsRenames + t(3) + "\"" + varKey + "\" => \"" + removeDots("custom." + varKey) + "\"" + CR
-					elif "." in varKey:
-						# just remove a possible . in field name
-						lsRenames = lsRenames + t(3) + "\"" + varKey + "\" => \"" + varKey.replace(".","_") + "\"" + CR
+					# also jump over the h* (when they are deleted, otherwise rename them)
+					if (not config.REMOVE_UNNAMED_FIELDS) or (config.REMOVE_UNNAMED_FIELDS and (varKey[:1] != "h" or varKey[1:] not in config.allFields)):
+						if config.RENAME_FIELDS:
+							if varKey in config.ecsField:
+								# field name exists in ECS mapping file, so change it
+								lsRenames = lsRenames + t(3) + "\"" + varKey + "\" => \"" + removeDots(config.ecsField[varKey]) + "\"" + CR
+							else:
+								# field name doesn't exist, rename it with general category "custom."
+								lsRenames = lsRenames + t(3) + "\"" + varKey + "\" => \"" + removeDots("custom." + varKey.replace(".","_")) + "\"" + CR
+						elif "." in varKey:
+							# just remove a possible . in field name
+							lsRenames = lsRenames + t(3) + "\"" + varKey + "\" => \"" + varKey.replace(".","_") + "\"" + CR
 			if lsRenames != "":
-				lsFile.write(CR + "# Rename fields" + CR)
-				lsFile.write("filter {" + CR + t(1) + "mutate {" + CR + t(2) + "rename => {" + CR + lsRenames)
-				lsFile.write(t(2) + "}" + CR + t(1) + "}" + CR + "}" + CR)
+				lsFile.write(CR + t(1) + "# Rename fields" + CR)
+				lsFile.write(t(1) + "mutate {" + CR + t(2) + "rename => {" + CR + lsRenames)
+				lsFile.write(t(2) + "}" + CR + t(1) + "}" + CR)
 
-			# drop all hfld* and fld* fields
+			# drop all unamed fields
 			if config.REMOVE_UNNAMED_FIELDS:
-				first = True
-				removedFields = ""
+				removedFields = []
 				for varKey in sorted(config.allFields):
-					# if field exists in ECS mapping then rename it, otherwise, leave it as it is
-					if varKey[:4] == "hfld" or varKey[:3] == "fld":
-						if first:
-							removedFields = removedFields + "\"" + varKey + "\""
-							first = False
-						else:
-							removedFields = removedFields + ", \"" + varKey + "\""
-				if removedFields != "":
-					lsFile.write(CR + "# Drop all hfld* and fld* fields" + CR)
-					lsFile.write("filter {" + CR + t(1) + "mutate {" + CR)
-					lsFile.write(t(2) + "remove_field => [ " + removedFields + " ]" + CR + t(1) + "}" + CR + "}" + CR)
+					# easy part: remove the hfld* and fld* fields. Also remove h(.*) fields when (.*) is in the fields (for instance drop huser when user is parsed by the MESSAGE)
+					if varKey[:4] == "hfld" or varKey[:3] == "fld" or (varKey[:1] == "h" and varKey[1:] in config.allFields):
+						removedFields.append("\"" + varKey + "\"")
+				if len(removedFields) > 0:
+					removedFields.sort()
+					lsFile.write(CR + t(1) + "# Drop all hfld* and fld* fields" + CR)
+					lsFile.write(t(1) + "mutate {" + CR)
+					lsFile.write(t(2) + "remove_field => [ " + ",".join(removedFields) + " ]" + CR + t(1) + "}" + CR)
 
 			# remove the parsed fields
 			if config.REMOVE_PARSED_FIELDS:
-				lsFile.write(CR + "# Remove parsed fields" + CR)
-				lsFile.write("filter {" + CR + t(1) + "if [logstash][headerfound] and [logstash][messagefound] {" + CR)
+				lsFile.write(CR + t(1) + "# Remove parsed fields" + CR)
+				lsFile.write(t(1) + "if [logstash][headerfound] and [logstash][messagefound] {" + CR)
 				lsFile.write(t(2) + "mutate { remove_field => [ " + ("\"[event][original]\", " if config.REMOVE_ORIG_MSG else "") + "\"message\", \"payload\", \"[logstash][fullDateTimeString]\", \"[rsa][msg][data]\", \"[rsa][msg][id]\", \"[rsa][header][id]\", \"[rsa][message][id1]\", \"[rsa][message][id2]\" ] }" + CR)
-				lsFile.write(t(1) + "}" + CR + "}" + CR)
+				lsFile.write(t(1) + "}" + CR)
+
+			# end of the filter block
+			lsFile.write(CR + CR + "# End of the filter block" + CR + "}" + CR)
 
 			# add output lines of logstash conf
 			with open(config.OUTPUT_FILE,"r") as fi:
@@ -509,20 +509,18 @@ def convertFile():
 			config.esMap["mappings"]["properties"]["rsa"]["properties"]["message"]["properties"]["id2"] = { "type" : "keyword" }
 			# write field mapping
 			for varKey in sorted(config.allFields):
-				# jump over the fld* fields
-				if varKey != "" and varKey[:3] != "fld" and varKey[:4] != "hfld":
-					# if field doesn't exist in ECS mapping, we don't care, we'll just leave them as they are (indexed as text)
-					if varKey in config.ecsField:
-						# if type is text, we let ES create the field and the field.keyword automatically
-						if config.RENAME_FIELDS and config.ecsType[varKey] != "text":
-							# fields have been renamed in LS
-							generateFieldMapping(config.ecsField[varKey], config.ecsType[varKey])
-						if not config.RENAME_FIELDS and config.ecsType[varKey] != "text":
-							# just keeping the raw RSA field name, but changing the type
-							generateFieldMapping(varKey.replace(".","_"), config.ecsType[varKey])
-					else:
-						# TODO support table-map.xml to change types of fields that are custom
-						if config.DEBUG: print("TODO")
+				# if field doesn't exist in ECS mapping, we don't care, we'll just leave them as they are (indexed as text)
+				if varKey in config.ecsField:
+					# if type is text, we let ES create the field and the field.keyword automatically
+					if config.RENAME_FIELDS and config.ecsType[varKey] != "text":
+						# fields have been renamed in LS
+						generateFieldMapping(config.ecsField[varKey], config.ecsType[varKey])
+					if (not config.RENAME_FIELDS) and config.ecsType[varKey] != "text":
+						# just keeping the raw RSA field name, but changing the type
+						generateFieldMapping(varKey.replace(".","_"), config.ecsType[varKey])
+				else:
+					# TODO: support table-map.xml to change types of fields that are custom, or just ask the user to add his custom fields in the table-map.csv!
+					if config.DEBUG: print("TODO")
 			# write the list of fields (without the last comma)
 			esMappingFile.write(json.dumps(config.esMap, indent=4))
 
