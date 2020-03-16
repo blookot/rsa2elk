@@ -11,7 +11,14 @@ The purpose of this tool is to convert an existing configuration made for RSA Ne
 
 RSA uses one configuration file per device source (product). For example, one file will handle F5 ASM, another one will handle F5 APM, etc.
 
-Please note that RSA released the configuration files for 300 devices [on github](https://github.com/netwitness/nw-logparsers) with the Apache 2.0 license. So if you are not an RSA user, you can still pass any of these configuration files to the rsa2elk tool to generate the corresponding Logstash pipeline.
+RSA used to publish configuration files for 300 devices (see below). 
+So if you are not an RSA user, you can still pass any of these configuration files to the rsa2elk tool to generate the corresponding Logstash pipeline.
+
+## Relations to RSA
+
+Status as of March 2020: Elastic or Vincent Maury has no direct or indirect relation to RSA.
+
+Until March 2020, RSA used to publish the configuration files for 300 devices [on their github](https://github.com/netwitness/nw-logparsers) with the Apache 2.0 license. Since March 2020, this repo has been closed, but you can find a copy of these configuration files in the [devices](devices/) directory.
 
 ## Getting Started
 
