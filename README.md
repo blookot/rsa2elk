@@ -90,6 +90,15 @@ If you use the Elasticsearch output of the generated pipeline, you will see the 
 
 When the `check-config` flag has been activated, this configuration file is automatically tested by Logstash. The output of Logstash can be checked in the `output-logstash-[device]-configtest.txt` file that is created in the same directory than the rsa xml file input.
 
+### Logstash tuning
+
+Considering some Logstash configuration files could be large (tens of thousands of lines), you may want to tune Logstash.
+
+Beyond [usual tuning](https://www.elastic.co/guide/en/logstash/current/performance-tuning.html), here are a few advices from @colinsurprenant (see this [github issue](https://github.com/elastic/logstash/issues/11591)):
+* `Xms` and `Xmx` are for setting the global heap size (typically in Gb). There used to be a "golden rule" for setting maximum heap not more that 50% of the total physical memory, to leave room for OS buffers etc. This should be roughly followed in general, although you might be able to go up to 75% of the physical memory.
+* `-Xss` is for the stack size which is per-thread and is typically in Kb or low Mb (default is 1024Kb). If you get a `StackOverflowError` error, you could try at `-Xss2m` and doubling up. You should never need more that a 4 to 16mb stack size.
+
+
 ## Understanding the tool (the how)
 
 RSA Netwitness Log Parser is the piece of software ingesting data in the Netwitness platform. It comes with a nice UI (see [the user guide](https://community.rsa.com/docs/DOC-85016)).
